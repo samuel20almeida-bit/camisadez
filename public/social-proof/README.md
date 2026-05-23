@@ -1,9 +1,9 @@
 # Social proof sticker references
 
-Coloque aqui as três imagens de referência enviadas no chat com estes nomes:
+As três imagens de referência ficam nesta pasta com estes nomes:
 
+- `samuel-rocha.png`
 - `raquel-aparecida.png`
-- `eu.png`
 - `luiz-felipe.png`
 
 Esses arquivos são usados em dois lugares:
