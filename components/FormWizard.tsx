@@ -70,6 +70,45 @@ const teams = [
 
 const stepLabels = ["Nome", "Nascimento", "Medidas", "Time", "Foto"];
 
+async function normalizePhotoForUpload(file: File) {
+  const imageUrl = URL.createObjectURL(file);
+
+  try {
+    const image = new Image();
+    image.src = imageUrl;
+    await image.decode();
+
+    const maxEdge = 1800;
+    const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("Canvas indisponível.");
+    }
+
+    context.drawImage(image, 0, 0, width, height);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", 0.92);
+    });
+
+    if (!blob) {
+      throw new Error("Não foi possível converter a foto.");
+    }
+
+    const safeName = file.name.replace(/\.[^.]+$/, "") || "foto";
+    return new File([blob], `${safeName}.jpg`, { type: "image/jpeg" });
+  } finally {
+    URL.revokeObjectURL(imageUrl);
+  }
+}
+
 function createInitialDraft(packType: PackType): DraftState {
   const count = PACKS[packType].count;
 
@@ -277,14 +316,37 @@ export function FormWizard({ packType }: { packType: PackType }) {
     payload.append("heightCm", currentForm.heightCm);
     payload.append("weightKg", currentForm.weightKg);
     payload.append("team", currentForm.team);
-    payload.append("photo", currentPhoto);
+    let uploadPhoto: File;
 
-    const response = await fetch("/api/stickers", {
-      method: "POST",
-      body: payload,
-    });
+    try {
+      uploadPhoto = await normalizePhotoForUpload(currentPhoto);
+    } catch {
+      setIsSubmitting(false);
+      setError("Não conseguimos preparar essa foto. Tente salvar/exportar como JPG ou PNG e enviar novamente.");
+      return;
+    }
 
-    const result = (await response.json()) as { id?: string; error?: string };
+    payload.append("photo", uploadPhoto);
+
+    let response: Response;
+
+    try {
+      response = await fetch("/api/stickers", {
+        method: "POST",
+        body: payload,
+      });
+    } catch {
+      setIsSubmitting(false);
+      setError("Não foi possível enviar a foto. Verifique a conexão e tente novamente.");
+      return;
+    }
+
+    const result = (await response
+      .json()
+      .catch(() => ({ error: "O servidor não retornou uma resposta válida." }))) as {
+      id?: string;
+      error?: string;
+    };
 
     if (!response.ok || !result.id) {
       setIsSubmitting(false);
