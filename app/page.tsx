@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
+import { SocialProofStickers } from "@/components/SocialProofStickers";
 import { StickerMock } from "@/components/StickerMock";
 import { PACK_LIST } from "@/lib/packs";
 
@@ -231,18 +232,41 @@ export default function Home() {
       </section>
 
       <section className="bg-brasil-blue py-14 text-white">
-        <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 text-center sm:px-6 md:grid-cols-[1fr_auto] md:items-center md:text-left">
-          <div>
-            <p className="text-sm font-black uppercase text-brasil-yellow">Prova social</p>
-            <h2 className="mt-2 text-4xl font-black">
-              <AnimatedCounter target={2500} /> figurinhas criadas
-            </h2>
-            <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-white/75">
-              Famílias, escolinhas e fãs criando versões de álbum para guardar e compartilhar.
-            </p>
+        <div className="mx-auto w-full max-w-6xl px-5 sm:px-6">
+          <div className="grid gap-8 text-center md:grid-cols-[1fr_auto] md:items-center md:text-left">
+            <div>
+              <p className="text-sm font-black uppercase text-brasil-yellow">Prova social</p>
+              <h2 className="mt-2 text-4xl font-black">
+                <AnimatedCounter target={2500} /> figurinhas criadas
+              </h2>
+              <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-white/75">
+                Exemplos reais do visual que guia a criação das novas figurinhas.
+              </p>
+            </div>
+            <div className="rounded-lg bg-white/10 px-5 py-4 text-4xl leading-relaxed ring-1 ring-white/15 sm:text-5xl" aria-label="Bandeiras de países">
+              🇧🇷 🇦🇷 🇫🇷 🇩🇪 🇪🇸
+            </div>
           </div>
-          <div className="rounded-lg bg-white/10 px-5 py-4 text-4xl leading-relaxed ring-1 ring-white/15 sm:text-5xl" aria-label="Bandeiras de países">
-            🇧🇷 🇦🇷 🇫🇷 🇩🇪 🇪🇸
+
+          <div className="mt-9">
+            <SocialProofStickers />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#06132f] py-10 text-white">
+        <div className="mx-auto w-full max-w-6xl px-5 text-center sm:px-6 md:text-left">
+          <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+            <div>
+              <p className="text-sm font-black uppercase text-brasil-yellow">Começar</p>
+              <h2 className="mt-2 text-2xl font-black">Pronto para virar figurinha?</h2>
+            </div>
+            <Link
+              href="#packs"
+              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brasil-green px-6 text-base font-black text-white transition hover:bg-[#008633]"
+            >
+              Escolher pack
+            </Link>
           </div>
         </div>
       </section>

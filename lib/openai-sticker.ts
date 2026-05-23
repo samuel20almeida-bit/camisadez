@@ -1,6 +1,7 @@
 import OpenAI, { toFile } from "openai";
 import sharp from "sharp";
 import { formatHeight, toCardName, toTeamName } from "@/lib/format";
+import { readReferenceStickerBuffers } from "@/lib/reference-server";
 
 type AiStickerInput = {
   firstName: string;
@@ -60,9 +61,10 @@ function buildPrompt(input: AiStickerInput) {
   const team = toTeamName(input.team);
 
   return [
-    "Quero que você substitua o jogador dessa foto por essa outra pessoa, garanta que as informações da imagem também mudem, como o nome, sobrenome, peso, altura e etc.",
-    "É imprescindível que você garanta que todos os textos estejam legíveis e apenas a pessoa, juntamente das informações aqui dispostas, mude.",
-    "Todo o restante deve permanecer exatamente igual ao layout de referência.",
+    "Use as imagens de referência fornecidas como base visual principal do layout da figurinha.",
+    "Quero que você substitua a pessoa das referências pela pessoa enviada na foto do usuário, mantendo o estilo visual, composição, cores, recorte, fundo, número 26, FIFA 26, bandeira do Brasil, BRA vertical e rodapé das referências.",
+    "Garanta que as informações da imagem mudem para os dados abaixo, como nome, sobrenome, peso, altura e time.",
+    "É imprescindível que todos os textos estejam legíveis e que apenas a pessoa e os dados mudem; todo o restante deve permanecer no mesmo padrão das referências.",
     `Nome principal: ${name}.`,
     `Linha de stats: ${stats}.`,
     `Time/clube: ${team}.`,
@@ -77,11 +79,20 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
 
   try {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const referenceAssets = await readReferenceStickerBuffers();
     const referenceBuffer = await sharp(Buffer.from(referenceSvg(input))).png().toBuffer();
+    const referenceFiles =
+      referenceAssets.length > 0
+        ? await Promise.all(
+            referenceAssets.map((asset) =>
+              toFile(asset.buffer, asset.filename, { type: "image/png" }),
+            ),
+          )
+        : [await toFile(referenceBuffer, "camisa-10-reference.png", { type: "image/png" })];
     const response = await client.images.edit({
       model: process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1.5",
       image: [
-        await toFile(referenceBuffer, "camisa-10-reference.png", { type: "image/png" }),
+        ...referenceFiles,
         await toFile(input.photoBuffer, "craque.png", { type: "image/png" }),
       ],
       prompt: buildPrompt(input),
