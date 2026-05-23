@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { markPackPaid } from "@/lib/pack-store";
 import { getStripeClient } from "@/lib/stripe";
 import { markStickerPaid } from "@/lib/sticker-store";
 
@@ -23,9 +24,12 @@ export async function POST(request: Request) {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
+      const packId = session.metadata?.packId;
       const stickerId = session.metadata?.stickerId;
 
-      if (stickerId) {
+      if (packId) {
+        await markPackPaid(packId, session.id);
+      } else if (stickerId) {
         await markStickerPaid(stickerId, session.id);
       }
     }

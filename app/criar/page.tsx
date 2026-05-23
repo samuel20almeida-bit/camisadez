@@ -1,8 +1,18 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { FormWizard } from "@/components/FormWizard";
+import { PACKS, normalizePackType } from "@/lib/packs";
 
-export default function CriarPage() {
+type CriarPageProps = {
+  searchParams: {
+    pack?: string;
+  };
+};
+
+export default function CriarPage({ searchParams }: CriarPageProps) {
+  const packType = normalizePackType(searchParams.pack);
+  const pack = PACKS[packType];
+
   return (
     <main className="subtle-field min-h-screen bg-[#f9f9f9] px-5 py-5 sm:px-6">
       <div className="mx-auto mb-8 flex w-full max-w-6xl items-center justify-between">
@@ -13,11 +23,11 @@ export default function CriarPage() {
           <ChevronLeft className="h-4 w-4" />
           Camisa 10
         </Link>
-        <span className="rounded-lg bg-brasil-yellow px-4 py-2 text-sm font-black text-brasil-blue">
-          R$9,90
+        <span className="max-w-[48vw] truncate rounded-lg bg-brasil-yellow px-4 py-2 text-sm font-black text-brasil-blue">
+          {pack.shortTitle} • {pack.priceLabel}
         </span>
       </div>
-      <FormWizard />
+      <FormWizard packType={packType} />
     </main>
   );
 }

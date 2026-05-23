@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { StickerMock } from "@/components/StickerMock";
+import { PACK_LIST } from "@/lib/packs";
 
 const steps = [
   {
@@ -57,7 +58,7 @@ export default function Home() {
             </div>
           </div>
           <Link
-            href="/criar"
+            href="#packs"
             className="hidden min-h-11 items-center justify-center rounded-lg bg-white px-5 text-sm font-black text-brasil-blue transition hover:bg-brasil-yellow sm:inline-flex"
           >
             Começar
@@ -78,10 +79,10 @@ export default function Home() {
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
-                href="/criar"
+                href="#packs"
                 className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-brasil-green px-5 text-sm font-black text-white shadow-2xl shadow-black/20 transition hover:-translate-y-0.5 hover:bg-[#008633] sm:w-auto sm:text-base"
               >
-                Criar minha figurinha agora
+                Escolher meu pack
                 <ArrowRight className="h-5 w-5" />
               </Link>
               <span className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white/12 px-4 text-sm font-black text-white ring-1 ring-white/20 backdrop-blur sm:justify-start">
@@ -112,6 +113,67 @@ export default function Home() {
               </div>
             );
           })}
+        </div>
+      </section>
+
+      <section id="packs" className="bg-white py-14">
+        <div className="mx-auto w-full max-w-6xl px-5 sm:px-6">
+          <div className="mx-auto mb-8 max-w-2xl text-center">
+            <p className="text-sm font-black uppercase text-brasil-green">Escolha seu pack</p>
+            <h2 className="mt-2 text-3xl font-black leading-tight text-brasil-blue sm:text-4xl">
+              Uma figurinha para você ou um álbum para a família.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              A quantidade fica travada depois da escolha para deixar o fluxo simples e rápido.
+            </p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            {PACK_LIST.map((pack) => (
+              <article
+                key={pack.type}
+                className={
+                  pack.popular
+                    ? "relative rounded-lg border-2 border-brasil-green bg-[#f7fff9] p-5 shadow-xl shadow-brasil-green/15"
+                    : "rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+                }
+              >
+                {pack.popular ? (
+                  <div className="absolute -top-3 left-5 rounded-lg bg-brasil-green px-3 py-1 text-xs font-black text-white shadow-lg">
+                    MAIS POPULAR
+                  </div>
+                ) : null}
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-black uppercase text-brasil-blue">{pack.title}</h3>
+                    <p className="mt-1 text-sm font-bold text-slate-600">
+                      {pack.count} {pack.count === 1 ? "figurinha" : "figurinhas"}
+                    </p>
+                  </div>
+                  <div className="grid h-12 w-12 place-items-center rounded-lg bg-brasil-yellow text-lg font-black text-brasil-blue">
+                    {pack.count}
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <p className="text-4xl font-black text-brasil-blue">{pack.priceLabel}</p>
+                  <p className="mt-2 min-h-5 text-sm font-bold text-brasil-green">
+                    {pack.savingsLabel ?? "ideal para começar"}
+                  </p>
+                </div>
+                <Link
+                  href={`/criar?pack=${pack.type}`}
+                  className={
+                    pack.popular
+                      ? "mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-brasil-green px-5 text-base font-black text-white shadow-lg shadow-brasil-green/25 transition hover:-translate-y-0.5 hover:bg-[#008633]"
+                      : "mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-brasil-blue px-5 text-base font-black text-white transition hover:-translate-y-0.5 hover:bg-[#061a4a]"
+                  }
+                >
+                  Escolher
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 

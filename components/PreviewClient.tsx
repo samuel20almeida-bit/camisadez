@@ -31,7 +31,7 @@ export function PreviewClient({ stickerId }: PreviewClientProps) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ stickerId }),
+      body: JSON.stringify({ packType: "individual", stickerIds: [stickerId] }),
     });
 
     const result = (await response.json()) as { url?: string; error?: string };
