@@ -19,6 +19,26 @@ function numberValue(formData: FormData, key: string) {
   return Number.isFinite(value) ? value : 0;
 }
 
+function generationErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes("unsupported image format") ||
+    normalized.includes("input buffer contains unsupported") ||
+    normalized.includes("heif") ||
+    normalized.includes("heic")
+  ) {
+    return "Não conseguimos processar essa foto. Tente exportar como JPG, PNG ou WEBP e enviar novamente.";
+  }
+
+  if (normalized.includes("input file is missing") || normalized.includes("empty input")) {
+    return "A foto enviada parece estar vazia ou corrompida. Escolha outro arquivo.";
+  }
+
+  return "Não foi possível gerar a figurinha agora. Tente outra foto ou recarregue a página.";
+}
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
@@ -90,9 +110,11 @@ export async function POST(request: Request) {
       id,
       previewUrl: `/api/stickers/${id}/image?variant=preview`,
     });
-  } catch {
+  } catch (error) {
+    console.error("[api/stickers] Falha ao gerar figurinha", error);
+
     return NextResponse.json(
-      { error: "Não foi possível gerar a figurinha agora." },
+      { error: generationErrorMessage(error) },
       { status: 500 },
     );
   }
