@@ -1,8 +1,7 @@
-import { readFile, writeFile } from "fs/promises";
 import sharp from "sharp";
 import { formatHeight, toCardName, toTeamName } from "@/lib/format";
 import { tryGenerateAiSticker } from "@/lib/openai-sticker";
-import { ensureStickerDir, getStickerPaths } from "@/lib/sticker-store";
+import { downloadStickerImage, uploadStickerImage } from "@/lib/sticker-store";
 
 export type GenerateStickerInput = {
   id: string;
@@ -143,8 +142,6 @@ async function preparePhoto(photoBuffer: Buffer) {
 }
 
 export async function generateSticker(input: GenerateStickerInput) {
-  await ensureStickerDir(input.id);
-  const paths = getStickerPaths(input.id);
   const photo = await preparePhoto(input.photoBuffer);
   const aiClean = await tryGenerateAiSticker(input);
 
@@ -160,16 +157,12 @@ export async function generateSticker(input: GenerateStickerInput) {
     .png()
     .toBuffer();
 
-  await writeFile(paths.clean, clean);
-  await writeFile(paths.preview, preview);
-
-  return {
-    cleanPath: paths.clean,
-    previewPath: paths.preview,
-  };
+  await Promise.all([
+    uploadStickerImage(input.id, "clean", clean),
+    uploadStickerImage(input.id, "preview", preview),
+  ]);
 }
 
 export async function readStickerImage(id: string, variant: "clean" | "preview") {
-  const paths = getStickerPaths(id);
-  return readFile(variant === "clean" ? paths.clean : paths.preview);
+  return downloadStickerImage(id, variant);
 }

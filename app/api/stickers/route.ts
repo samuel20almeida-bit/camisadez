@@ -142,7 +142,7 @@ export async function POST(request: Request) {
 
     const id = crypto.randomUUID();
     const photoBuffer = Buffer.from(await photo.arrayBuffer());
-    const paths = await generateSticker({
+    await generateSticker({
       id,
       firstName,
       lastName,
@@ -163,7 +163,6 @@ export async function POST(request: Request) {
       team,
       status: "generated",
       createdAt: new Date().toISOString(),
-      ...paths,
     };
 
     await saveSticker(record);
