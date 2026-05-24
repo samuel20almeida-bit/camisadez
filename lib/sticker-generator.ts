@@ -1,10 +1,7 @@
 import sharp from "sharp";
 import { formatHeight, toCardName, toTeamName } from "@/lib/format";
 import { tryGenerateAiSticker } from "@/lib/openai-sticker";
-import {
-  STICKER_DISPLAY_FONT,
-  getStickerFontFaceStyle,
-} from "@/lib/sticker-font";
+import { renderText } from "@/lib/sticker-font";
 import { downloadStickerImage, uploadStickerImage } from "@/lib/sticker-store";
 
 export type GenerateStickerInput = {
@@ -20,15 +17,6 @@ export type GenerateStickerInput = {
 
 const WIDTH = 800;
 const HEIGHT = 1120;
-
-function escapeXml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
 
 function fitFontSize(text: string, max = 76, min = 44) {
   if (text.length <= 12) {
@@ -55,19 +43,61 @@ function brazilFlagSvg(size = 132) {
   `;
 }
 
-async function baseSvg(input: GenerateStickerInput) {
-  const fontFace = await getStickerFontFaceStyle();
-  const cardName = escapeXml(toCardName(input.firstName, input.lastName));
-  const team = escapeXml(toTeamName(input.team));
-  const stats = escapeXml(
-    `${input.birthDate} | ${formatHeight(input.heightCm)} | ${input.weightKg} kg`,
-  );
+function baseSvg(input: GenerateStickerInput) {
+  const cardName = toCardName(input.firstName, input.lastName);
+  const team = toTeamName(input.team);
+  const stats = `${input.birthDate} | ${formatHeight(input.heightCm)} | ${input.weightKg} kg`;
   const fontSize = fitFontSize(cardName);
+
+  const decorative2 = renderText("2", -28, 438, {
+    size: 440,
+    fill: "#005F00",
+    opacity: 0.82,
+  });
+  const decorative6 = renderText("6", 272, 808, {
+    size: 520,
+    fill: "#005F00",
+    opacity: 0.82,
+  });
+  const fifa26 = renderText("26", 644, 140, {
+    size: 98,
+    fill: "#fff",
+  });
+  const fifaLabel = renderText("FIFA", 687, 256, {
+    size: 32,
+    fill: "#fff",
+  });
+  const braLabel = renderText("BRA", 706, 854, {
+    size: 104,
+    fill: "#fff",
+    stroke: "#00A8C0",
+    strokeWidth: 8,
+    rotate: { angle: 90, cx: 706, cy: 854 },
+  });
+  const nameLabel = renderText(cardName, 354, 908, {
+    size: fontSize,
+    fill: "#fff",
+    textAnchor: "middle",
+  });
+  const statsLabel = renderText(stats, 354, 958, {
+    size: 38,
+    fill: "#fff",
+    textAnchor: "middle",
+  });
+  const teamLabel = renderText(team, 322, 1042, {
+    size: 36,
+    fill: "#fff",
+    textAnchor: "middle",
+  });
+  const paniniLabel = renderText("PANINI", 678, 1041, {
+    size: 35,
+    fill: "#C71717",
+    textAnchor: "middle",
+  });
 
   return `
     <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        ${fontFace}
         <linearGradient id="footer" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="#00384F"/>
           <stop offset="1" stop-color="#002050"/>
@@ -80,46 +110,53 @@ async function baseSvg(input: GenerateStickerInput) {
       <rect width="${WIDTH}" height="${HEIGHT}" fill="#00C4C8"/>
       <rect x="0" y="0" width="${WIDTH}" height="${HEIGHT}" fill="#fff" opacity="0.05"/>
 
-      <text x="-28" y="438" font-family="${STICKER_DISPLAY_FONT}" font-size="440" font-weight="900" fill="#005F00" opacity="0.82">2</text>
-      <text x="272" y="808" font-family="${STICKER_DISPLAY_FONT}" font-size="520" font-weight="900" fill="#005F00" opacity="0.82">6</text>
+      ${decorative2}
+      ${decorative6}
       <rect x="356" y="338" width="172" height="172" rx="6" fill="#FFDF00" opacity="0.96"/>
 
-      <g transform="translate(626 38)">
-        <text x="18" y="102" font-family="${STICKER_DISPLAY_FONT}" font-size="98" font-weight="900" fill="#fff">26</text>
-        <path d="M73 45 C97 45 111 65 105 91 C101 110 91 121 82 128 L82 160 L98 188 L48 188 L64 160 L64 128 C54 121 45 108 41 91 C35 65 49 45 73 45Z" fill="#fff"/>
-        <text x="61" y="218" font-family="${STICKER_DISPLAY_FONT}" font-size="32" fill="#fff">FIFA</text>
-      </g>
+      ${fifa26}
+      <path d="M699 83 C723 83 737 103 731 129 C727 148 717 159 708 166 L708 198 L724 226 L674 226 L690 198 L690 166 C680 159 671 146 667 129 C661 103 675 83 699 83Z" fill="#fff"/>
+      ${fifaLabel}
 
       <g transform="translate(602 642)">
         ${brazilFlagSvg(138)}
-        <text x="104" y="178" font-family="${STICKER_DISPLAY_FONT}" font-size="104" font-weight="900" fill="#fff" stroke="#00A8C0" stroke-width="8" paint-order="stroke" transform="rotate(90 104 178)">BRA</text>
       </g>
+      ${braLabel}
 
       <rect x="54" y="146" width="560" height="696" rx="58" fill="#0b8c4d" opacity="0.22" filter="url(#softShadow)"/>
 
       <rect x="42" y="840" width="624" height="128" rx="58" fill="url(#footer)"/>
-      <text x="354" y="908" text-anchor="middle" font-family="${STICKER_DISPLAY_FONT}" font-size="${fontSize}" font-weight="900" fill="#fff">${cardName}</text>
-      <text x="354" y="958" text-anchor="middle" font-family="${STICKER_DISPLAY_FONT}" font-size="38" fill="#fff">${stats}</text>
+      ${nameLabel}
+      ${statsLabel}
 
       <rect x="48" y="994" width="548" height="72" rx="25" fill="#002050" opacity="0.88"/>
-      <text x="322" y="1042" text-anchor="middle" font-family="${STICKER_DISPLAY_FONT}" font-size="36" fill="#fff">${team}</text>
+      ${teamLabel}
 
       <rect x="594" y="1000" width="166" height="58" rx="6" fill="#FFDF00" stroke="#C71717" stroke-width="5"/>
-      <text x="678" y="1039" text-anchor="middle" font-family="Georgia, serif" font-size="35" font-weight="900" fill="#C71717">PANINI</text>
+      ${paniniLabel}
     </svg>
   `;
 }
 
-async function watermarkSvg() {
-  const fontFace = await getStickerFontFaceStyle();
+function watermarkSvg() {
   const lines = Array.from({ length: 9 }, (_, index) => {
     const y = 96 + index * 120;
-    return `<text x="-90" y="${y}" font-family="${STICKER_DISPLAY_FONT}" font-size="64" font-weight="900" fill="#fff" opacity="0.55" stroke="#002776" stroke-width="3" paint-order="stroke">MINHA FIGURINHA 2026 • MINHA FIGURINHA 2026 • MINHA FIGURINHA 2026</text>`;
+    return renderText(
+      "MINHA FIGURINHA 2026 • MINHA FIGURINHA 2026 • MINHA FIGURINHA 2026",
+      -90,
+      y,
+      {
+        size: 64,
+        fill: "#fff",
+        stroke: "#002776",
+        strokeWidth: 3,
+        opacity: 0.55,
+      },
+    );
   }).join("");
 
   return `
     <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-      <defs>${fontFace}</defs>
       <g transform="rotate(-28 ${WIDTH / 2} ${HEIGHT / 2})">
         ${lines}
       </g>
@@ -155,13 +192,13 @@ export async function generateSticker(input: GenerateStickerInput) {
 
   const clean =
     aiClean ??
-    (await sharp(Buffer.from(await baseSvg(input)))
+    (await sharp(Buffer.from(baseSvg(input)))
       .composite([{ input: photo, left: 74, top: 168 }])
       .png()
       .toBuffer());
 
   const preview = await sharp(clean)
-    .composite([{ input: Buffer.from(await watermarkSvg()), left: 0, top: 0 }])
+    .composite([{ input: Buffer.from(watermarkSvg()), left: 0, top: 0 }])
     .png()
     .toBuffer();
 
