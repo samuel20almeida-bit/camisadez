@@ -26,9 +26,9 @@ function formValue(formData: FormData, key: string) {
   return typeof value === "string" ? normalizeName(value) : "";
 }
 
-function numberValue(formData: FormData, key: string) {
-  const value = Number(formValue(formData, key));
-  return Number.isFinite(value) ? value : 0;
+function intValue(formData: FormData, key: string) {
+  const raw = formValue(formData, key);
+  return /^\d+$/.test(raw) ? Number.parseInt(raw, 10) : Number.NaN;
 }
 
 function isAcceptedUpload(photo: File) {
@@ -67,12 +67,12 @@ export async function POST(request: Request) {
     const firstName = formValue(formData, "firstName");
     const lastName = formValue(formData, "lastName");
     const birthDate = formValue(formData, "birthDate");
-    const heightCm = numberValue(formData, "heightCm");
-    const weightKg = numberValue(formData, "weightKg");
+    const heightCm = intValue(formData, "heightCm");
+    const weightKg = intValue(formData, "weightKg");
     const team = formValue(formData, "team");
     const photo = formData.get("photo");
 
-    if (!firstName || !lastName || !birthDate || !heightCm || !weightKg || !team) {
+    if (!firstName || !lastName || !birthDate || !team) {
       return NextResponse.json(
         { error: "Preencha todos os dados do craque." },
         { status: 400 },
@@ -103,7 +103,9 @@ export async function POST(request: Request) {
       heightCm > HEIGHT_RANGE.max
     ) {
       return NextResponse.json(
-        { error: `Informe uma altura entre ${HEIGHT_RANGE.min} e ${HEIGHT_RANGE.max} cm.` },
+        {
+          error: `Altura deve ser um número inteiro entre ${HEIGHT_RANGE.min} e ${HEIGHT_RANGE.max} cm (use o valor em centímetros, ex: 175).`,
+        },
         { status: 400 },
       );
     }
@@ -114,7 +116,9 @@ export async function POST(request: Request) {
       weightKg > WEIGHT_RANGE.max
     ) {
       return NextResponse.json(
-        { error: `Informe um peso entre ${WEIGHT_RANGE.min} e ${WEIGHT_RANGE.max} kg.` },
+        {
+          error: `Peso deve ser um número inteiro entre ${WEIGHT_RANGE.min} e ${WEIGHT_RANGE.max} kg.`,
+        },
         { status: 400 },
       );
     }

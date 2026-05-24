@@ -267,8 +267,21 @@ export function FormWizard({ packType }: { packType: PackType }) {
       return "Selecione dia, mês e ano de nascimento.";
     }
 
-    if (draft.step === 3 && (!Number(currentForm.heightCm) || !Number(currentForm.weightKg))) {
-      return "Informe altura e peso em números.";
+    if (draft.step === 3) {
+      if (!/^\d+$/.test(currentForm.heightCm) || !/^\d+$/.test(currentForm.weightKg)) {
+        return "Altura e peso devem ser números inteiros, sem vírgula.";
+      }
+
+      const height = Number(currentForm.heightCm);
+      const weight = Number(currentForm.weightKg);
+
+      if (height < 50 || height > 230) {
+        return "Altura deve ficar entre 50 e 230 cm (use o número em cm, ex: 175).";
+      }
+
+      if (weight < 10 || weight > 250) {
+        return "Peso deve ficar entre 10 e 250 kg.";
+      }
     }
 
     if (draft.step === 4 && !currentForm.team.trim()) {
@@ -683,15 +696,29 @@ export function FormWizard({ packType }: { packType: PackType }) {
               label="Altura (cm)"
               placeholder="Ex: 175"
               type="number"
+              inputMode="numeric"
+              min={50}
+              max={230}
+              step={1}
+              hint="Em centímetros, número inteiro. Ex: 175 (não 1,75)"
               value={currentForm.heightCm}
-              onChange={(value) => updateCurrentForm("heightCm", value)}
+              onChange={(value) =>
+                updateCurrentForm("heightCm", value.replace(/[^\d]/g, ""))
+              }
             />
             <Input
               label="Peso (kg)"
               placeholder="Ex: 70"
               type="number"
+              inputMode="numeric"
+              min={10}
+              max={250}
+              step={1}
+              hint="Em quilos, número inteiro. Ex: 70"
               value={currentForm.weightKg}
-              onChange={(value) => updateCurrentForm("weightKg", value)}
+              onChange={(value) =>
+                updateCurrentForm("weightKg", value.replace(/[^\d]/g, ""))
+              }
             />
           </div>
           {formattedStats ? (
@@ -831,12 +858,21 @@ function FormShell({
             </span>
             <button
               type="button"
-              onClick={resetDraft}
-              className="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-brasil-blue transition hover:bg-slate-50"
-              aria-label="Limpar progresso"
-              title="Limpar progresso"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "Tem certeza que quer apagar o que já preencheu e recomeçar do zero?",
+                  )
+                ) {
+                  resetDraft();
+                }
+              }}
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-brasil-blue transition hover:bg-slate-50"
+              aria-label="Começar do zero"
+              title="Começar do zero"
             >
               <RefreshCcw className="h-4 w-4" />
+              <span>Começar do zero</span>
             </button>
           </div>
         </div>
@@ -883,12 +919,22 @@ function Input({
   onChange,
   placeholder,
   type = "text",
+  min,
+  max,
+  step,
+  inputMode,
+  hint,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   type?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  inputMode?: "numeric" | "text";
+  hint?: string;
 }) {
   return (
     <label className="block">
@@ -898,8 +944,15 @@ function Input({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        min={min}
+        max={max}
+        step={step}
+        inputMode={inputMode}
         className="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-4 text-base outline-none transition focus:border-brasil-green focus:ring-4 focus:ring-brasil-green/15"
       />
+      {hint ? (
+        <span className="mt-1 block text-xs text-slate-500">{hint}</span>
+      ) : null}
     </label>
   );
 }
