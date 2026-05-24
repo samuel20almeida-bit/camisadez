@@ -114,24 +114,27 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
       `[openai-sticker] chamando ${model} (timeout ${timeoutMs}ms, ${referenceFiles.length + 1} imagens)`,
     );
 
-    const response = await client.images.edit(
-      {
-        model,
-        image: [
-          ...referenceFiles,
-          await toFile(photoBuffer, "craque.png", { type: "image/png" }),
-        ],
-        prompt: buildPrompt(input),
-        size: "1024x1536",
-        quality: "high",
-        output_format: "png",
-        input_fidelity: "high",
-      },
-      {
-        maxRetries: 0,
-        timeout: timeoutMs,
-      },
-    );
+    const supportsInputFidelity = /^gpt-image-1(\b|-)/.test(model);
+    const editParams: Parameters<typeof client.images.edit>[0] = {
+      model,
+      image: [
+        ...referenceFiles,
+        await toFile(photoBuffer, "craque.png", { type: "image/png" }),
+      ],
+      prompt: buildPrompt(input),
+      size: "1024x1536",
+      quality: "high",
+      output_format: "png",
+    };
+
+    if (supportsInputFidelity) {
+      editParams.input_fidelity = "high";
+    }
+
+    const response = (await client.images.edit(editParams, {
+      maxRetries: 0,
+      timeout: timeoutMs,
+    })) as { data?: Array<{ b64_json?: string }> };
     const b64 = response.data?.[0]?.b64_json;
     const elapsed = Date.now() - startedAt;
 

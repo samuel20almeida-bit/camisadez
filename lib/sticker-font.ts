@@ -1,4 +1,4 @@
-import opentype from "opentype.js";
+import { parse, type Font } from "opentype.js";
 import { ANTON_WOFF_BASE64 } from "@/lib/fonts/anton-woff-base64";
 
 function decodeFont() {
@@ -7,10 +7,10 @@ function decodeFont() {
     buffer.byteOffset,
     buffer.byteOffset + buffer.byteLength,
   ) as ArrayBuffer;
-  return opentype.parse(arrayBuffer);
+  return parse(arrayBuffer);
 }
 
-let cachedFont: opentype.Font | null = null;
+let cachedFont: Font | null = null;
 
 function getFont() {
   if (!cachedFont) {
