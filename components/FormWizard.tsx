@@ -11,6 +11,7 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { PACKS, type PackType } from "@/lib/packs";
+import { formatBirthDate } from "@/lib/format";
 
 type FormFields = {
   firstName: string;
@@ -195,13 +196,10 @@ export function FormWizard({ packType }: { packType: PackType }) {
   const stepProgress = (draft.step / 5) * 100;
   const packProgress = ((draft.activeIndex + 1) / config.count) * 100;
 
-  const birthDate = useMemo(() => {
-    if (!currentForm.day || !currentForm.month || !currentForm.year) {
-      return "";
-    }
-
-    return `${currentForm.day}-${Number(currentForm.month)}-${currentForm.year}`;
-  }, [currentForm.day, currentForm.month, currentForm.year]);
+  const birthDate = useMemo(
+    () => formatBirthDate(currentForm.day, currentForm.month, currentForm.year),
+    [currentForm.day, currentForm.month, currentForm.year],
+  );
 
   const formattedStats = useMemo(() => {
     const height = Number(currentForm.heightCm);

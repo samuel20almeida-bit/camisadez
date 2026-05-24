@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { generateSticker } from "@/lib/sticker-generator";
 import { saveSticker, type StickerRecord } from "@/lib/sticker-store";
-import { normalizeName } from "@/lib/format";
+import { isValidBirthDate, normalizeName } from "@/lib/format";
+
+const MAX_NAME_LENGTH = 40;
+const MAX_TEAM_LENGTH = 40;
+const HEIGHT_RANGE = { min: 50, max: 230 };
+const WEIGHT_RANGE = { min: 10, max: 250 };
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -70,6 +75,46 @@ export async function POST(request: Request) {
     if (!firstName || !lastName || !birthDate || !heightCm || !weightKg || !team) {
       return NextResponse.json(
         { error: "Preencha todos os dados do craque." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      firstName.length > MAX_NAME_LENGTH ||
+      lastName.length > MAX_NAME_LENGTH ||
+      team.length > MAX_TEAM_LENGTH
+    ) {
+      return NextResponse.json(
+        { error: "Nome, sobrenome ou time muito longos." },
+        { status: 400 },
+      );
+    }
+
+    if (!isValidBirthDate(birthDate)) {
+      return NextResponse.json(
+        { error: "Data de nascimento inválida. Use o formato DD-MM-AAAA." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      !Number.isInteger(heightCm) ||
+      heightCm < HEIGHT_RANGE.min ||
+      heightCm > HEIGHT_RANGE.max
+    ) {
+      return NextResponse.json(
+        { error: `Informe uma altura entre ${HEIGHT_RANGE.min} e ${HEIGHT_RANGE.max} cm.` },
+        { status: 400 },
+      );
+    }
+
+    if (
+      !Number.isInteger(weightKg) ||
+      weightKg < WEIGHT_RANGE.min ||
+      weightKg > WEIGHT_RANGE.max
+    ) {
+      return NextResponse.json(
+        { error: `Informe um peso entre ${WEIGHT_RANGE.min} e ${WEIGHT_RANGE.max} kg.` },
         { status: 400 },
       );
     }
