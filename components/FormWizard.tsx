@@ -30,6 +30,11 @@ type GeneratedSticker = {
   index: number;
 };
 
+type StickerApiResult = {
+  id?: string;
+  error?: string;
+};
+
 type DraftState = {
   packType: PackType;
   activeIndex: number;
@@ -335,47 +340,55 @@ export function FormWizard({ packType }: { packType: PackType }) {
     setIsSubmitting(true);
     setError("");
 
-    const payload = new FormData();
-    payload.append("firstName", currentForm.firstName);
-    payload.append("lastName", currentForm.lastName);
-    payload.append("birthDate", birthDate);
-    payload.append("heightCm", currentForm.heightCm);
-    payload.append("weightKg", currentForm.weightKg);
-    payload.append("team", currentForm.team);
-    let uploadPhoto: File;
+    const buildPayload = (photo: File) => {
+      const payload = new FormData();
+      payload.append("firstName", currentForm.firstName);
+      payload.append("lastName", currentForm.lastName);
+      payload.append("birthDate", birthDate);
+      payload.append("heightCm", currentForm.heightCm);
+      payload.append("weightKg", currentForm.weightKg);
+      payload.append("team", currentForm.team);
+      payload.append("photo", photo, photo.name);
 
-    try {
-      uploadPhoto = await normalizePhotoForUpload(currentPhoto);
-    } catch (error) {
-      console.warn("[FormWizard] Falha ao normalizar foto; enviando original.", error);
-      uploadPhoto = currentPhoto;
-    }
-
-    payload.append("photo", uploadPhoto, uploadPhoto.name);
-
-    let response: Response;
-
-    try {
-      response = await fetch("/api/stickers", {
-        method: "POST",
-        body: payload,
-      });
-    } catch {
-      setIsSubmitting(false);
-      setError("Não foi possível enviar a foto. Verifique a conexão e tente novamente.");
-      return;
-    }
-
-    const result = (await response
-      .json()
-      .catch(() => ({ error: "O servidor não retornou uma resposta válida." }))) as {
-      id?: string;
-      error?: string;
+      return payload;
     };
 
-    if (!response.ok || !result.id) {
+    const uploadCandidates: File[] = [];
+
+    try {
+      uploadCandidates.push(await normalizePhotoForUpload(currentPhoto));
+    } catch (error) {
+      console.warn("[FormWizard] Falha ao normalizar foto; tentando original.", error);
+    }
+
+    uploadCandidates.push(currentPhoto);
+
+    let result: StickerApiResult | null = null;
+    let lastError = "";
+
+    for (const photo of uploadCandidates) {
+      try {
+        const response = await fetch("/api/stickers", {
+          method: "POST",
+          body: buildPayload(photo),
+        });
+        result = (await response
+          .json()
+          .catch(() => ({ error: "O servidor não retornou uma resposta válida." }))) as StickerApiResult;
+
+        if (response.ok && result.id) {
+          break;
+        }
+
+        lastError = result.error ?? "Não foi possível gerar sua figurinha.";
+      } catch {
+        lastError = "Não foi possível enviar a foto. Verifique a conexão e tente novamente.";
+      }
+    }
+
+    if (!result?.id) {
       setIsSubmitting(false);
-      setError(result.error ?? "Não foi possível gerar sua figurinha.");
+      setError(lastError || "Não foi possível gerar sua figurinha.");
       return;
     }
 
@@ -745,7 +758,7 @@ export function FormWizard({ packType }: { packType: PackType }) {
           <input
             ref={fileRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/jpg,image/pjpeg,image/png,image/webp"
             className="hidden"
             onChange={(event) => handlePhoto(event.target.files?.[0])}
           />
