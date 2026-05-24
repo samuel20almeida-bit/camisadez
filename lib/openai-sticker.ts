@@ -20,6 +20,22 @@ function aiEditEnabled() {
   );
 }
 
+function aiTimeoutMs() {
+  const value = Number(process.env.OPENAI_IMAGE_TIMEOUT_MS ?? 20000);
+  return Number.isFinite(value) && value > 0 ? value : 20000;
+}
+
+async function prepareImageForOpenAi(buffer: Buffer) {
+  return sharp(buffer)
+    .rotate()
+    .resize(1024, 1024, {
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .png()
+    .toBuffer();
+}
+
 function referenceSvg(input: AiStickerInput) {
   const name = toCardName(input.firstName, input.lastName);
   const stats = `${input.birthDate} | ${formatHeight(input.heightCm)} | ${input.weightKg} kg`;
@@ -79,6 +95,8 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
 
   try {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const timeoutMs = aiTimeoutMs();
+    const photoBuffer = await prepareImageForOpenAi(input.photoBuffer);
     const referenceAssets = await readReferenceStickerBuffers();
     const referenceBuffer = await sharp(Buffer.from(referenceSvg(input))).png().toBuffer();
     const referenceFiles =
@@ -89,18 +107,24 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
             ),
           )
         : [await toFile(referenceBuffer, "camisa-10-reference.png", { type: "image/png" })];
-    const response = await client.images.edit({
-      model: process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1.5",
-      image: [
-        ...referenceFiles,
-        await toFile(input.photoBuffer, "craque.png", { type: "image/png" }),
-      ],
-      prompt: buildPrompt(input),
-      size: "1024x1536",
-      quality: "high",
-      output_format: "png",
-      input_fidelity: "high",
-    });
+    const response = await client.images.edit(
+      {
+        model: process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1.5",
+        image: [
+          ...referenceFiles,
+          await toFile(photoBuffer, "craque.png", { type: "image/png" }),
+        ],
+        prompt: buildPrompt(input),
+        size: "1024x1536",
+        quality: "high",
+        output_format: "png",
+        input_fidelity: "high",
+      },
+      {
+        maxRetries: 0,
+        timeout: timeoutMs,
+      },
+    );
     const b64 = response.data?.[0]?.b64_json;
 
     if (!b64) {
@@ -111,7 +135,8 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
       .resize(800, 1120, { fit: "cover", position: "center" })
       .png()
       .toBuffer();
-  } catch {
+  } catch (error) {
+    console.warn("[openai-sticker] IA indisponível; usando gerador local.", error);
     return null;
   }
 }

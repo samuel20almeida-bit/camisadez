@@ -7,7 +7,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
-const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ACCEPTED_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/pjpeg",
+  "image/png",
+  "image/webp",
+]);
+const ACCEPTED_EXTENSIONS = /\.(jpe?g|png|webp)$/i;
 
 function formValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -17,6 +24,16 @@ function formValue(formData: FormData, key: string) {
 function numberValue(formData: FormData, key: string) {
   const value = Number(formValue(formData, key));
   return Number.isFinite(value) ? value : 0;
+}
+
+function isAcceptedUpload(photo: File) {
+  const type = photo.type.toLowerCase();
+
+  return (
+    ACCEPTED_TYPES.has(type) ||
+    ((type === "" || type === "application/octet-stream") &&
+      ACCEPTED_EXTENSIONS.test(photo.name))
+  );
 }
 
 function generationErrorMessage(error: unknown) {
@@ -64,7 +81,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!ACCEPTED_TYPES.has(photo.type)) {
+    if (!isAcceptedUpload(photo)) {
       return NextResponse.json(
         { error: "Formato inválido. Use JPG, PNG ou WEBP." },
         { status: 400 },

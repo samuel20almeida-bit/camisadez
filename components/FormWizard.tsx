@@ -69,6 +69,24 @@ const teams = [
 ];
 
 const stepLabels = ["Nome", "Nascimento", "Medidas", "Time", "Foto"];
+const acceptedPhotoTypes = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/pjpeg",
+  "image/png",
+  "image/webp",
+]);
+const acceptedPhotoExtension = /\.(jpe?g|png|webp)$/i;
+
+function isAcceptedPhoto(file: File) {
+  const type = file.type.toLowerCase();
+
+  return (
+    acceptedPhotoTypes.has(type) ||
+    ((type === "" || type === "application/octet-stream") &&
+      acceptedPhotoExtension.test(file.name))
+  );
+}
 
 async function normalizePhotoForUpload(file: File) {
   const imageUrl = URL.createObjectURL(file);
@@ -76,7 +94,15 @@ async function normalizePhotoForUpload(file: File) {
   try {
     const image = new Image();
     image.src = imageUrl;
-    await image.decode();
+
+    if (typeof image.decode === "function") {
+      await image.decode();
+    } else {
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error("Não foi possível ler a foto."));
+      });
+    }
 
     const maxEdge = 1800;
     const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth, image.naturalHeight));
@@ -269,7 +295,7 @@ export function FormWizard({ packType }: { packType: PackType }) {
       return;
     }
 
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    if (!isAcceptedPhoto(file)) {
       setError("Use uma foto em JPG, PNG ou WEBP.");
       return;
     }
@@ -320,13 +346,12 @@ export function FormWizard({ packType }: { packType: PackType }) {
 
     try {
       uploadPhoto = await normalizePhotoForUpload(currentPhoto);
-    } catch {
-      setIsSubmitting(false);
-      setError("Não conseguimos preparar essa foto. Tente salvar/exportar como JPG ou PNG e enviar novamente.");
-      return;
+    } catch (error) {
+      console.warn("[FormWizard] Falha ao normalizar foto; enviando original.", error);
+      uploadPhoto = currentPhoto;
     }
 
-    payload.append("photo", uploadPhoto);
+    payload.append("photo", uploadPhoto, uploadPhoto.name);
 
     let response: Response;
 
