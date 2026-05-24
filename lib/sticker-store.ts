@@ -1,5 +1,8 @@
-import { mkdir, readFile, writeFile } from "fs/promises";
-import path from "path";
+import {
+  STICKER_BUCKET,
+  getSupabaseClient,
+  stickerStoragePath,
+} from "@/lib/supabase";
 
 export type StickerStatus = "generated" | "paid";
 
@@ -15,61 +18,127 @@ export type StickerRecord = {
   createdAt: string;
   paidAt?: string;
   stripeSessionId?: string;
-  cleanPath: string;
-  previewPath: string;
 };
 
-const DATA_DIR = path.join(process.cwd(), ".data", "stickers");
+type StickerRow = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  birth_date: string;
+  height_cm: number;
+  weight_kg: number;
+  team: string;
+  status: StickerStatus;
+  created_at: string;
+  paid_at: string | null;
+  stripe_session_id: string | null;
+};
 
-export function getStickerDir(id: string) {
-  return path.join(DATA_DIR, id);
-}
-
-export function getStickerPaths(id: string) {
-  const dir = getStickerDir(id);
-
+function fromRow(row: StickerRow): StickerRecord {
   return {
-    dir,
-    metadata: path.join(dir, "metadata.json"),
-    clean: path.join(dir, "clean.png"),
-    preview: path.join(dir, "preview.png"),
+    id: row.id,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    birthDate: row.birth_date,
+    heightCm: row.height_cm,
+    weightKg: row.weight_kg,
+    team: row.team,
+    status: row.status,
+    createdAt: row.created_at,
+    paidAt: row.paid_at ?? undefined,
+    stripeSessionId: row.stripe_session_id ?? undefined,
   };
 }
 
-export async function ensureStickerDir(id: string) {
-  await mkdir(getStickerDir(id), { recursive: true });
+function toRow(record: StickerRecord): StickerRow {
+  return {
+    id: record.id,
+    first_name: record.firstName,
+    last_name: record.lastName,
+    birth_date: record.birthDate,
+    height_cm: record.heightCm,
+    weight_kg: record.weightKg,
+    team: record.team,
+    status: record.status,
+    created_at: record.createdAt,
+    paid_at: record.paidAt ?? null,
+    stripe_session_id: record.stripeSessionId ?? null,
+  };
 }
 
 export async function saveSticker(record: StickerRecord) {
-  await ensureStickerDir(record.id);
-  const paths = getStickerPaths(record.id);
-  await writeFile(paths.metadata, JSON.stringify(record, null, 2), "utf8");
-}
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.from("stickers").upsert(toRow(record));
 
-export async function getSticker(id: string): Promise<StickerRecord | null> {
-  try {
-    const paths = getStickerPaths(id);
-    const content = await readFile(paths.metadata, "utf8");
-    return JSON.parse(content) as StickerRecord;
-  } catch {
-    return null;
+  if (error) {
+    throw new Error(`Falha ao salvar figurinha: ${error.message}`);
   }
 }
 
-export async function markStickerPaid(id: string, stripeSessionId?: string) {
-  const record = await getSticker(id);
+export async function getSticker(id: string): Promise<StickerRecord | null> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("stickers")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-  if (!record) {
+  if (error || !data) {
+    return null;
+  }
+
+  return fromRow(data as StickerRow);
+}
+
+export async function markStickerPaid(id: string, stripeSessionId?: string) {
+  const existing = await getSticker(id);
+
+  if (!existing) {
     return null;
   }
 
   const updated: StickerRecord = {
-    ...record,
+    ...existing,
     status: "paid",
-    paidAt: record.paidAt ?? new Date().toISOString(),
-    stripeSessionId: stripeSessionId ?? record.stripeSessionId,
+    paidAt: existing.paidAt ?? new Date().toISOString(),
+    stripeSessionId: stripeSessionId ?? existing.stripeSessionId,
   };
 
   await saveSticker(updated);
   return updated;
+}
+
+export async function uploadStickerImage(
+  id: string,
+  variant: "clean" | "preview",
+  data: Buffer | Uint8Array,
+) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.storage
+    .from(STICKER_BUCKET)
+    .upload(stickerStoragePath(id, variant), data, {
+      contentType: "image/png",
+      upsert: true,
+    });
+
+  if (error) {
+    throw new Error(`Falha ao subir imagem (${variant}): ${error.message}`);
+  }
+}
+
+export async function downloadStickerImage(
+  id: string,
+  variant: "clean" | "preview",
+): Promise<Buffer> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase.storage
+    .from(STICKER_BUCKET)
+    .download(stickerStoragePath(id, variant));
+
+  if (error || !data) {
+    throw new Error(`Imagem ${variant} indisponível para ${id}.`);
+  }
+
+  const arrayBuffer = await data.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }

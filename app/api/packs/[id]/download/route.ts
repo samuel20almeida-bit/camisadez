@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import JSZip from "jszip";
-import { readFile } from "fs/promises";
 import { getPack, getPackStickers } from "@/lib/pack-store";
-import { getStickerPaths } from "@/lib/sticker-store";
+import { downloadStickerImage } from "@/lib/sticker-store";
 import { toCardName } from "@/lib/format";
 
 export const runtime = "nodejs";
@@ -40,11 +39,15 @@ export async function GET(_request: Request, { params }: Params) {
   const stickers = await getPackStickers(pack);
   const zip = new JSZip();
 
-  for (const [index, sticker] of stickers.entries()) {
-    const image = await readFile(getStickerPaths(sticker.id).clean);
-    const name = slugify(toCardName(sticker.firstName, sticker.lastName)) || `figurinha-${index + 1}`;
-    zip.file(`${String(index + 1).padStart(2, "0")}-${name}.png`, image);
-  }
+  const images = await Promise.all(
+    stickers.map((sticker) => downloadStickerImage(sticker.id, "clean")),
+  );
+
+  stickers.forEach((sticker, index) => {
+    const name =
+      slugify(toCardName(sticker.firstName, sticker.lastName)) || `figurinha-${index + 1}`;
+    zip.file(`${String(index + 1).padStart(2, "0")}-${name}.png`, images[index]);
+  });
 
   const buffer = await zip.generateAsync({ type: "nodebuffer" });
 

@@ -1,6 +1,9 @@
-import { mkdir, readFile, writeFile } from "fs/promises";
-import path from "path";
-import { getSticker, markStickerPaid, type StickerRecord } from "@/lib/sticker-store";
+import { getSupabaseClient } from "@/lib/supabase";
+import {
+  getSticker,
+  markStickerPaid,
+  type StickerRecord,
+} from "@/lib/sticker-store";
 import { PACKS, type PackType } from "@/lib/packs";
 
 export type PackStatus = "generated" | "paid";
@@ -16,39 +19,65 @@ export type PackRecord = {
   stripeSessionId?: string;
 };
 
-const PACKS_DIR = path.join(process.cwd(), ".data", "packs");
+type PackRow = {
+  id: string;
+  pack_type: PackType;
+  sticker_ids: string[];
+  status: PackStatus;
+  price_cents: number;
+  created_at: string;
+  paid_at: string | null;
+  stripe_session_id: string | null;
+};
 
-export function getPackDir(id: string) {
-  return path.join(PACKS_DIR, id);
-}
-
-export function getPackPaths(id: string) {
-  const dir = getPackDir(id);
-
+function fromRow(row: PackRow): PackRecord {
   return {
-    dir,
-    metadata: path.join(dir, "metadata.json"),
+    id: row.id,
+    packType: row.pack_type,
+    stickerIds: row.sticker_ids,
+    status: row.status,
+    priceCents: row.price_cents,
+    createdAt: row.created_at,
+    paidAt: row.paid_at ?? undefined,
+    stripeSessionId: row.stripe_session_id ?? undefined,
   };
 }
 
-export async function ensurePackDir(id: string) {
-  await mkdir(getPackDir(id), { recursive: true });
+function toRow(record: PackRecord): PackRow {
+  return {
+    id: record.id,
+    pack_type: record.packType,
+    sticker_ids: record.stickerIds,
+    status: record.status,
+    price_cents: record.priceCents,
+    created_at: record.createdAt,
+    paid_at: record.paidAt ?? null,
+    stripe_session_id: record.stripeSessionId ?? null,
+  };
 }
 
 export async function savePack(record: PackRecord) {
-  await ensurePackDir(record.id);
-  const paths = getPackPaths(record.id);
-  await writeFile(paths.metadata, JSON.stringify(record, null, 2), "utf8");
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.from("packs").upsert(toRow(record));
+
+  if (error) {
+    throw new Error(`Falha ao salvar pack: ${error.message}`);
+  }
 }
 
 export async function getPack(id: string): Promise<PackRecord | null> {
-  try {
-    const paths = getPackPaths(id);
-    const content = await readFile(paths.metadata, "utf8");
-    return JSON.parse(content) as PackRecord;
-  } catch {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("packs")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
     return null;
   }
+
+  return fromRow(data as PackRow);
 }
 
 export async function createPack(packType: PackType, stickerIds: string[]) {

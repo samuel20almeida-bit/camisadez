@@ -46,7 +46,7 @@ export async function GET(request: Request, { params }: Params) {
       );
     }
 
-    return new NextResponse(image, { headers });
+    return new NextResponse(new Uint8Array(image), { headers });
   } catch {
     return NextResponse.json(
       { error: "Imagem indisponível." },
