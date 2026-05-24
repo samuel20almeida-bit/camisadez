@@ -30,9 +30,13 @@ export async function GET(request: Request, { params }: Params) {
 
   try {
     const image = await readStickerImage(params.id, variant);
+    const cacheControl =
+      variant === "clean"
+        ? "private, max-age=31536000, immutable"
+        : "private, max-age=300";
     const headers = new Headers({
       "Content-Type": "image/png",
-      "Cache-Control": "private, max-age=60",
+      "Cache-Control": cacheControl,
     });
 
     if (shouldDownload) {

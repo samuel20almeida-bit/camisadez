@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { CreditCard, Loader2, Lock, ShieldCheck, Sparkles } from "lucide-react";
 
@@ -9,14 +9,9 @@ type PreviewClientProps = {
 };
 
 export function PreviewClient({ stickerId }: PreviewClientProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setIsLoading(false), 1600);
-    return () => window.clearTimeout(timer);
-  }, []);
 
   const checkout = async () => {
     if (!stickerId) {
@@ -62,34 +57,25 @@ export function PreviewClient({ stickerId }: PreviewClientProps) {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="subtle-field grid min-h-screen place-items-center bg-[#f9f9f9] px-5 text-center">
-        <div className="w-full max-w-md rounded-lg bg-white p-7 shadow-xl shadow-slate-200/70 ring-1 ring-slate-200">
-          <div className="mx-auto grid h-20 w-20 place-items-center rounded-lg bg-brasil-green/10">
-            <Loader2 className="h-10 w-10 animate-spin text-brasil-green" />
-          </div>
-          <h1 className="mt-7 text-3xl font-black text-brasil-blue">
-            Estamos criando sua figurinha...
-          </h1>
-          <p className="mt-3 text-slate-600">Isso pode levar alguns segundos</p>
-          <div className="mx-auto mt-8 h-2 max-w-sm overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full w-2/3 animate-pulse rounded-full bg-brasil-yellow" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <main className="subtle-field min-h-screen bg-[#f9f9f9]">
       <section className="mx-auto grid w-full max-w-6xl gap-9 px-5 py-8 sm:px-6 lg:grid-cols-[minmax(0,420px)_1fr] lg:items-center lg:py-14">
         <div className="mx-auto w-full max-w-[306px] sm:max-w-[360px]">
           <div className="watermark-preview relative overflow-hidden rounded-[18px] bg-white shadow-sticker ring-4 ring-white">
+            {!isImageLoaded ? (
+              <div
+                className="absolute inset-0 z-10 grid place-items-center bg-white"
+                aria-hidden="true"
+              >
+                <Loader2 className="h-10 w-10 animate-spin text-brasil-green" />
+              </div>
+            ) : null}
             <img
               src={`/api/stickers/${stickerId}/image?variant=preview`}
               alt="Preview da figurinha com marca d'água"
               className="block aspect-[5/7] w-full object-cover"
+              onLoad={() => setIsImageLoaded(true)}
+              onError={() => setIsImageLoaded(true)}
             />
           </div>
         </div>

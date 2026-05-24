@@ -132,7 +132,10 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
     }
 
     return sharp(Buffer.from(b64, "base64"))
-      .resize(800, 1120, { fit: "cover", position: "center" })
+      .resize(800, 1120, {
+        fit: "contain",
+        background: { r: 0, g: 196, b: 200, alpha: 1 },
+      })
       .png()
       .toBuffer();
   } catch (error) {

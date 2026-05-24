@@ -35,15 +35,34 @@ function getLineItem(packType: keyof typeof PACKS) {
   };
 }
 
+function resolveOrigin(request: Request) {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  if (configured) {
+    return configured.replace(/\/+$/, "");
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return request.headers.get("origin") ?? "http://localhost:3000";
+  }
+
+  return null;
+}
+
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => ({}))) as CheckoutPayload;
   const packType = normalizePackType(payload.packType);
   const stickerIds = payload.stickerIds?.filter(Boolean) ?? (payload.stickerId ? [payload.stickerId] : []);
 
-  const origin =
-    request.headers.get("origin") ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    "http://localhost:3000";
+  const origin = resolveOrigin(request);
+
+  if (!origin) {
+    return NextResponse.json(
+      { error: "NEXT_PUBLIC_SITE_URL não configurado." },
+      { status: 500 },
+    );
+  }
+
   const stripe = getStripeClient();
 
   let pack;
@@ -60,6 +79,13 @@ export async function POST(request: Request) {
   const config = PACKS[pack.packType];
 
   if (!stripe) {
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "Pagamento indisponível no momento." },
+        { status: 503 },
+      );
+    }
+
     await markPackPaid(pack.id, `dev_pack_${pack.id}`);
 
     return NextResponse.json({
