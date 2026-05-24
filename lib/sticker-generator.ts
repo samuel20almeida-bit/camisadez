@@ -139,18 +139,16 @@ function baseSvg(input: GenerateStickerInput) {
 }
 
 function watermarkSvg() {
-  const lines = Array.from({ length: 9 }, (_, index) => {
-    const y = 96 + index * 120;
+  const lines = Array.from({ length: 6 }, (_, index) => {
+    const y = 140 + index * 180;
     return renderText(
       "MINHA FIGURINHA 2026 • MINHA FIGURINHA 2026 • MINHA FIGURINHA 2026",
       -90,
       y,
       {
-        size: 64,
+        size: 48,
         fill: "#fff",
-        stroke: "#002776",
-        strokeWidth: 3,
-        opacity: 0.55,
+        opacity: 0.28,
       },
     );
   }).join("");
