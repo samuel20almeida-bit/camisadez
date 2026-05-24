@@ -13,13 +13,6 @@ type AiStickerInput = {
   photoBuffer: Buffer;
 };
 
-function aiEditEnabled() {
-  return (
-    Boolean(process.env.OPENAI_API_KEY) &&
-    process.env.OPENAI_IMAGE_EDIT_ENABLED === "true"
-  );
-}
-
 function aiTimeoutMs() {
   const value = Number(process.env.OPENAI_IMAGE_TIMEOUT_MS ?? 20000);
   return Number.isFinite(value) && value > 0 ? value : 20000;
@@ -89,9 +82,18 @@ function buildPrompt(input: AiStickerInput) {
 }
 
 export async function tryGenerateAiSticker(input: AiStickerInput) {
-  if (!aiEditEnabled()) {
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn("[openai-sticker] OPENAI_API_KEY ausente; usando gerador local.");
     return null;
   }
+
+  if (process.env.OPENAI_IMAGE_EDIT_ENABLED !== "true") {
+    console.info("[openai-sticker] OPENAI_IMAGE_EDIT_ENABLED != 'true'; usando gerador local.");
+    return null;
+  }
+
+  const model = process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-2";
+  const startedAt = Date.now();
 
   try {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -107,9 +109,14 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
             ),
           )
         : [await toFile(referenceBuffer, "camisa-10-reference.png", { type: "image/png" })];
+
+    console.info(
+      `[openai-sticker] chamando ${model} (timeout ${timeoutMs}ms, ${referenceFiles.length + 1} imagens)`,
+    );
+
     const response = await client.images.edit(
       {
-        model: process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1",
+        model,
         image: [
           ...referenceFiles,
           await toFile(photoBuffer, "craque.png", { type: "image/png" }),
@@ -126,10 +133,14 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
       },
     );
     const b64 = response.data?.[0]?.b64_json;
+    const elapsed = Date.now() - startedAt;
 
     if (!b64) {
+      console.warn(`[openai-sticker] resposta sem b64_json após ${elapsed}ms; usando gerador local.`);
       return null;
     }
+
+    console.info(`[openai-sticker] OK em ${elapsed}ms`);
 
     return sharp(Buffer.from(b64, "base64"))
       .resize(800, 1120, {
@@ -139,7 +150,13 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
       .png()
       .toBuffer();
   } catch (error) {
-    console.warn("[openai-sticker] IA indisponível; usando gerador local.", error);
+    const elapsed = Date.now() - startedAt;
+    const message = error instanceof Error ? error.message : String(error);
+    const status = (error as { status?: number })?.status;
+
+    console.warn(
+      `[openai-sticker] falha (${elapsed}ms, status ${status ?? "?"}, modelo ${model}): ${message}`,
+    );
     return null;
   }
 }
