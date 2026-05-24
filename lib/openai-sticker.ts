@@ -109,7 +109,7 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
         : [await toFile(referenceBuffer, "camisa-10-reference.png", { type: "image/png" })];
     const response = await client.images.edit(
       {
-        model: process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1.5",
+        model: process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1",
         image: [
           ...referenceFiles,
           await toFile(photoBuffer, "craque.png", { type: "image/png" }),
