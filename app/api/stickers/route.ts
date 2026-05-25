@@ -10,8 +10,8 @@ const WEIGHT_RANGE = { min: 10, max: 250 };
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// gpt-image-2 com 4 imagens pode levar 60-90s; mantemos buffer para upload no Supabase.
-export const maxDuration = 120;
+// gpt-image-2 com referências pode levar até ~2,5 min; deixamos buffer para Supabase.
+export const maxDuration = 180;
 
 const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = new Set([
