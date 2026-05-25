@@ -14,8 +14,8 @@ type AiStickerInput = {
 };
 
 function aiTimeoutMs() {
-  const value = Number(process.env.OPENAI_IMAGE_TIMEOUT_MS ?? 20000);
-  return Number.isFinite(value) && value > 0 ? value : 20000;
+  const value = Number(process.env.OPENAI_IMAGE_TIMEOUT_MS ?? 90000);
+  return Number.isFinite(value) && value > 0 ? value : 90000;
 }
 
 async function prepareImageForOpenAi(buffer: Buffer) {
