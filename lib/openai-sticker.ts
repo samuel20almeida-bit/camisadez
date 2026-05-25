@@ -94,7 +94,7 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
     return null;
   }
 
-  const model = process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-2";
+  const model = process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1";
   const startedAt = Date.now();
 
   try {
