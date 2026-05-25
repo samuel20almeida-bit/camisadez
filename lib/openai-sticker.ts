@@ -14,9 +14,11 @@ type AiStickerInput = {
 };
 
 function aiTimeoutMs() {
-  const value = Number(process.env.OPENAI_IMAGE_TIMEOUT_MS ?? 90000);
-  return Number.isFinite(value) && value > 0 ? value : 90000;
+  const value = Number(process.env.OPENAI_IMAGE_TIMEOUT_MS ?? 150000);
+  return Number.isFinite(value) && value > 0 ? value : 150000;
 }
+
+const MAX_REFERENCE_IMAGES = Number(process.env.OPENAI_REFERENCE_LIMIT ?? 1);
 
 async function prepareImageForOpenAi(buffer: Buffer) {
   return sharp(buffer)
@@ -99,7 +101,10 @@ export async function tryGenerateAiSticker(input: AiStickerInput) {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const timeoutMs = aiTimeoutMs();
     const photoBuffer = await prepareImageForOpenAi(input.photoBuffer);
-    const referenceAssets = await readReferenceStickerBuffers();
+    const referenceAssets = (await readReferenceStickerBuffers()).slice(
+      0,
+      Math.max(1, MAX_REFERENCE_IMAGES),
+    );
     const referenceBuffer = await sharp(Buffer.from(referenceSvg(input))).png().toBuffer();
     const referenceFiles =
       referenceAssets.length > 0
