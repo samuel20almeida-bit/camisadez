@@ -15,6 +15,8 @@ import { StickerMock } from "@/components/StickerMock";
 import { FadeUp, StaggerChildren, StaggerItem } from "@/components/FadeUp";
 import { TiltCard } from "@/components/TiltCard";
 import { PACK_LIST } from "@/lib/packs";
+import { CountdownTimer } from "@/components/CountdownTimer";
+import { Testimonials } from "@/components/Testimonials";
 
 const steps = [
   {
@@ -50,10 +52,12 @@ export default function Home() {
   return (
     <main className="bg-[#f9f9f9]">
       <div className="bg-gradient-to-r from-[#007a2e] via-brasil-green to-[#007a2e] px-5 py-2.5 text-center text-sm font-black text-white">
-        <span className="inline-flex items-center gap-2">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-brasil-yellow" />
-          Copa 2026 começa em junho &mdash; garanta sua figurinha antes!
-          <span className="h-2 w-2 animate-pulse rounded-full bg-brasil-yellow" />
+        <span className="inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-brasil-yellow" />
+            Copa 2026 começa em:
+          </span>
+          <CountdownTimer />
         </span>
       </div>
       <section className="hero-field relative isolate min-h-[78svh] overflow-hidden text-white">
@@ -84,7 +88,7 @@ export default function Home() {
               <BadgeCheck className="h-4 w-4 shrink-0 text-brasil-yellow" />
               <span className="truncate">Copa 2026 • preview antes de pagar</span>
             </div>
-            <h1 className="max-w-[18ch] text-4xl font-black leading-[1.06] sm:max-w-[17ch] sm:text-5xl lg:text-6xl">
+            <h1 className="max-w-[18ch] text-4xl font-black leading-[1.06] sm:max-w-[17ch] sm:text-5xl lg:text-[4.5rem]">
               Transforme você em figurinha da Copa 2026.
             </h1>
             <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-white/92 sm:text-lg">
@@ -208,6 +212,21 @@ export default function Home() {
         </div>
       </section>
 
+      <div className="border-y border-slate-100 bg-white py-5">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-center gap-6 px-5 sm:px-6">
+          {[
+            "🔒 Pagamento 100% seguro via Stripe",
+            "👁️ Veja o resultado antes de pagar",
+            "⚡ Entrega instantânea por download",
+            "🖨️ PNG pronto para impressão",
+          ].map((item) => (
+            <span key={item} className="text-sm font-bold text-slate-500">
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
       <section className="bg-white py-14">
         <div className="mx-auto w-full max-w-6xl px-5 sm:px-6">
           <FadeUp className="mb-8 grid gap-3 md:grid-cols-[1fr_0.7fr] md:items-end">
@@ -275,6 +294,8 @@ export default function Home() {
           </StaggerChildren>
         </div>
       </section>
+
+      <Testimonials />
 
       <section className="bg-white py-14">
         <div className="mx-auto w-full max-w-3xl px-5 sm:px-6">
