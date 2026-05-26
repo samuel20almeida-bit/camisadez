@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Criar figurinha | Camisa 10",
+  robots: { index: false },
+};
 import { FormWizard } from "@/components/FormWizard";
 import { PACKS, normalizePackType } from "@/lib/packs";
 

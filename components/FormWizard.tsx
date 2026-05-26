@@ -464,6 +464,30 @@ export function FormWizard({ packType }: { packType: PackType }) {
     });
   };
 
+  const retrySticker = () => {
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    setCurrentPhoto(null);
+    setPhotoPreviewUrl("");
+    setError("");
+    setDraft((current) => {
+      const generated = [...current.generated];
+      generated[current.activeIndex] = null;
+      return { ...current, generated, mode: "editing", step: 5 };
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== "Enter" || e.shiftKey || (e.target as HTMLElement).tagName === "TEXTAREA") return;
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === "SELECT" || tag === "BUTTON" || tag === "A") return;
+    e.preventDefault();
+    if (draft.step === 5) {
+      if (currentPhoto || currentGenerated) generateCurrentSticker();
+    } else {
+      goNext();
+    }
+  };
+
   const resetDraft = () => {
     if (photoPreviewUrl) {
       URL.revokeObjectURL(photoPreviewUrl);
@@ -561,14 +585,25 @@ export function FormWizard({ packType }: { packType: PackType }) {
             <p className="mt-3 text-sm leading-6 text-slate-600">
               Esta versão fica salva no seu pack. Se recarregar a página, as figurinhas já geradas continuam no resumo.
             </p>
-            <button
-              type="button"
-              onClick={nextSticker}
-              className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-brasil-green px-5 text-base font-black text-white shadow-lg shadow-brasil-green/25 transition hover:-translate-y-0.5 hover:bg-[#008633] sm:w-auto"
-            >
-              {draft.activeIndex + 1 === config.count ? "Ir para pagamento" : "Próxima figurinha"}
-              <ArrowRight className="h-5 w-5" />
-            </button>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={nextSticker}
+                className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-brasil-green px-5 text-base font-black text-white shadow-lg shadow-brasil-green/25 transition hover:-translate-y-0.5 hover:bg-[#008633]"
+              >
+                {draft.activeIndex + 1 === config.count ? "Ir para pagamento" : "Próxima figurinha"}
+                <ArrowRight className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={retrySticker}
+                className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                title="Tentar com outra foto"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Outra foto
+              </button>
+            </div>
           </div>
         </div>
       </FormShell>
@@ -636,7 +671,7 @@ export function FormWizard({ packType }: { packType: PackType }) {
   }
 
   return (
-    <FormShell config={config} draft={draft} resetDraft={resetDraft}>
+    <FormShell config={config} draft={draft} resetDraft={resetDraft} onKeyDown={handleKeyDown}>
       <div className="mb-6 rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
         <div className="mb-3 flex items-center justify-between text-sm font-bold text-brasil-blue">
           <span>Etapa {draft.step}/5</span>
@@ -776,10 +811,23 @@ export function FormWizard({ packType }: { packType: PackType }) {
 
       {draft.step === 5 && (
         <StepShell title="Agora envie a foto do craque!">
-          <p className="mb-4 text-sm leading-6 text-slate-600">
-            Use uma foto de rosto, com boa iluminação, fundo limpo e sem óculos escuros.
-            No celular, você pode tirar uma selfie na hora ou escolher da galeria.
-          </p>
+          <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              { emoji: "☀️", label: "Boa iluminação", ok: true },
+              { emoji: "👤", label: "Rosto centralizado", ok: true },
+              { emoji: "🕶️", label: "Sem óculos escuros", ok: false },
+              { emoji: "👥", label: "Somente uma pessoa", ok: true },
+            ].map(({ emoji, label, ok }) => (
+              <div
+                key={label}
+                className={`flex flex-col items-center gap-1 rounded-lg p-2 text-center text-xs font-bold ${ok ? "bg-brasil-green/8 text-brasil-green" : "bg-red-50 text-red-600"}`}
+              >
+                <span className="text-xl">{emoji}</span>
+                <span className={ok ? "" : "line-through opacity-70"}>{label}</span>
+                <span>{ok ? "✓" : "✗"}</span>
+              </div>
+            ))}
+          </div>
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
@@ -865,16 +913,18 @@ function FormShell({
   draft,
   resetDraft,
   children,
+  onKeyDown,
 }: {
   config: (typeof PACKS)[PackType];
   draft: DraftState;
   resetDraft: () => void;
   children: React.ReactNode;
+  onKeyDown?: React.KeyboardEventHandler;
 }) {
   const packProgress = ((draft.activeIndex + 1) / config.count) * 100;
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
+    <div className="mx-auto w-full max-w-3xl" onKeyDown={onKeyDown}>
       <div className="mb-6 rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
