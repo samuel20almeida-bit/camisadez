@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readStickerImage } from "@/lib/sticker-generator";
-import { getSticker } from "@/lib/sticker-store";
+import { getSticker, markStickerPaid } from "@/lib/sticker-store";
+import { findPaidPackForSticker } from "@/lib/pack-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,10 +23,17 @@ export async function GET(request: Request, { params }: Params) {
   }
 
   if (variant === "clean" && sticker.status !== "paid") {
-    return NextResponse.json(
-      { error: "Pagamento ainda não confirmado." },
-      { status: 403 },
-    );
+    const paidPack = await findPaidPackForSticker(params.id);
+
+    if (!paidPack) {
+      return NextResponse.json(
+        { error: "Pagamento ainda não confirmado." },
+        { status: 403 },
+      );
+    }
+
+    // Pack is paid but sticker wasn't marked — heal it now
+    await markStickerPaid(params.id, paidPack.stripeSessionId);
   }
 
   try {

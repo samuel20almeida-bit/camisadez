@@ -135,3 +135,19 @@ export async function markPackPaid(id: string, stripeSessionId?: string) {
 
   return updated;
 }
+
+export async function findPaidPackForSticker(stickerId: string): Promise<PackRecord | null> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("packs")
+    .select("*")
+    .contains("sticker_ids", [stickerId])
+    .eq("status", "paid")
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return fromRow(data as PackRow);
+}
