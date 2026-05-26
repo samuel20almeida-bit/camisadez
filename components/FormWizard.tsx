@@ -72,6 +72,30 @@ const teams = [
   "Vasco",
   "Bahia",
   "Botafogo",
+  "Fluminense",
+  "Sport",
+  "Fortaleza",
+  "Athletico-PR",
+  "Ceará",
+  "Goiás",
+  "América-MG",
+  "Coritiba",
+  "Chapecoense",
+  "Avaí",
+  "Ponte Preta",
+  "Bragantino",
+  "Juventude",
+  "Cuiabá",
+  "Mirassol",
+  "Brasil",
+  "Argentina",
+  "Real Madrid",
+  "Barcelona",
+  "Manchester City",
+  "Paris Saint-Germain",
+  "Bayern de Munique",
+  "Juventus",
+  "Liverpool",
 ];
 
 const stepLabels = ["Nome", "Nascimento", "Medidas", "Time", "Foto"];
@@ -505,9 +529,10 @@ export function FormWizard({ packType }: { packType: PackType }) {
             <h1 className="mt-6 text-2xl font-black text-brasil-blue">
               Gerando figurinha {draft.activeIndex + 1} de {config.count}...
             </h1>
-            <p className="mt-2 text-slate-600">Preparando foto, dados e preview.</p>
+            <p className="mt-2 text-slate-600">A IA está criando o visual personalizado.</p>
+            <p className="mt-1 text-sm text-slate-400">Geralmente leva entre 30 e 90 segundos.</p>
             <div className="mx-auto mt-7 h-2 max-w-xs overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full w-2/3 animate-pulse rounded-full bg-brasil-yellow" />
+              <div className="h-full animate-[progress_90s_linear_forwards] rounded-full bg-brasil-yellow" />
             </div>
           </div>
         </div>
@@ -753,6 +778,7 @@ export function FormWizard({ packType }: { packType: PackType }) {
         <StepShell title="Agora envie a foto do craque!">
           <p className="mb-4 text-sm leading-6 text-slate-600">
             Use uma foto de rosto, com boa iluminação, fundo limpo e sem óculos escuros.
+            No celular, você pode tirar uma selfie na hora ou escolher da galeria.
           </p>
           <button
             type="button"
@@ -791,9 +817,14 @@ export function FormWizard({ packType }: { packType: PackType }) {
       )}
 
       {error ? (
-        <p className="mt-5 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">
-          {error}
-        </p>
+        <div className="mt-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          <p className="font-semibold">{error}</p>
+          {draft.step === 5 && (
+            <p className="mt-1 text-red-500">
+              Dica: use uma foto de rosto com boa iluminação, fundo limpo e sem óculos escuros.
+            </p>
+          )}
+        </div>
       ) : null}
 
       <div className="mt-8 flex gap-3">
