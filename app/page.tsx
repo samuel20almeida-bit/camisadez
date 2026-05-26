@@ -20,18 +20,21 @@ const steps = [
     kicker: "01",
     title: "Envie sua foto e dados",
     text: "Preencha nome, data de nascimento, altura, peso e time.",
+    time: "~2 min",
   },
   {
     icon: Sparkles,
     kicker: "02",
     title: "Veja sua figurinha",
-    text: "A geração monta o preview personalizado na hora.",
+    text: "A IA gera o preview personalizado — veja grátis antes de pagar.",
+    time: "~60 seg",
   },
   {
     icon: CreditCard,
     kicker: "03",
     title: "Pague e baixe",
-    text: "Por apenas R$9,90 você baixa sem marca d'água.",
+    text: "Por apenas R$9,90 você baixa o PNG limpo, sem marca d'água.",
+    time: "~1 min",
   },
 ];
 
@@ -44,8 +47,12 @@ const proofItems = [
 export default function Home() {
   return (
     <main className="bg-[#f9f9f9]">
-      <div className="bg-brasil-green px-5 py-2 text-center text-sm font-black text-white">
-        ⚽ Copa 2026 começa em junho &mdash; garanta sua figurinha antes!
+      <div className="bg-gradient-to-r from-[#007a2e] via-brasil-green to-[#007a2e] px-5 py-2.5 text-center text-sm font-black text-white">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-brasil-yellow" />
+          Copa 2026 começa em junho &mdash; garanta sua figurinha antes!
+          <span className="h-2 w-2 animate-pulse rounded-full bg-brasil-yellow" />
+        </span>
       </div>
       <section className="hero-field relative isolate min-h-[78svh] overflow-hidden text-white">
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-[#f9f9f9]" />
@@ -69,8 +76,8 @@ export default function Home() {
           </Link>
         </header>
 
-        <div className="relative z-10 mx-auto flex min-h-[calc(78svh-76px)] w-full max-w-6xl items-center px-5 pb-16 pt-10 sm:px-6">
-          <div className="w-full max-w-[44rem]">
+        <div className="relative z-10 mx-auto grid min-h-[calc(78svh-76px)] w-full max-w-6xl grid-cols-1 items-center gap-8 px-5 pb-16 pt-10 sm:px-6 lg:grid-cols-[1fr_300px]">
+          <div className="w-full">
             <div className="mb-5 inline-flex max-w-full items-center gap-2 rounded-lg bg-white/14 px-3 py-2 text-sm font-bold text-white ring-1 ring-white/25 backdrop-blur sm:px-4">
               <BadgeCheck className="h-4 w-4 shrink-0 text-brasil-yellow" />
               <span className="truncate">Copa 2026 • preview antes de pagar</span>
@@ -92,6 +99,12 @@ export default function Home() {
               <span className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white/12 px-4 text-sm font-black text-white ring-1 ring-white/20 backdrop-blur sm:justify-start">
                 Mais de 2.500 figurinhas já criadas
               </span>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex lg:items-center lg:justify-center">
+            <div style={{ animation: "float 4s ease-in-out infinite" }}>
+              <StickerMock name="VOCÊ" stats="Sua figurinha aqui" team="COPA 2026" accent="yellow" />
             </div>
           </div>
         </div>
@@ -138,14 +151,18 @@ export default function Home() {
                 key={pack.type}
                 className={
                   pack.popular
-                    ? "relative rounded-lg border-2 border-brasil-green bg-[#f7fff9] p-5 shadow-xl shadow-brasil-green/15"
-                    : "rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+                    ? "relative overflow-hidden rounded-xl border-2 border-brasil-green bg-gradient-to-br from-[#f0fff6] to-[#e4f9ed] p-5 shadow-2xl shadow-brasil-green/20 ring-1 ring-brasil-green/30"
+                    : "rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md hover:border-slate-300"
                 }
               >
                 {pack.popular ? (
-                  <div className="absolute -top-3 left-5 rounded-lg bg-brasil-green px-3 py-1 text-xs font-black text-white shadow-lg">
-                    MAIS POPULAR
-                  </div>
+                  <>
+                    <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-brasil-green/8" />
+                    <div className="absolute -top-3 left-5 flex items-center gap-1.5 rounded-full bg-brasil-green px-3 py-1 text-xs font-black text-white shadow-lg">
+                      <span className="h-1.5 w-1.5 rounded-full bg-brasil-yellow" />
+                      MAIS POPULAR
+                    </div>
+                  </>
                 ) : null}
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -199,10 +216,16 @@ export default function Home() {
               Exemplos do visual que você vai receber após o pagamento.
             </p>
           </div>
-          <div className="grid justify-items-center gap-5 sm:grid-cols-3">
-            <StickerMock name="HELENA" stats="12-7-2016 | 1,32m | 28 kg" team="PALMEIRAS" accent="yellow" />
-            <StickerMock name="MIGUEL" stats="4-3-2014 | 1,44m | 36 kg" team="FLAMENGO" accent="green" />
-            <StickerMock name="ARTHUR" stats="21-9-2012 | 1,52m | 43 kg" team="CORINTHIANS" accent="blue" />
+          <div className="grid justify-items-center gap-6 sm:grid-cols-3">
+            <div className="-rotate-3 transition-all duration-300 hover:rotate-0 hover:scale-105">
+              <StickerMock name="HELENA" stats="12-7-2016 | 1,32m | 28 kg" team="PALMEIRAS" accent="yellow" />
+            </div>
+            <div className="transition-all duration-300 hover:scale-105 sm:translate-y-6">
+              <StickerMock name="MIGUEL" stats="4-3-2014 | 1,44m | 36 kg" team="FLAMENGO" accent="green" />
+            </div>
+            <div className="rotate-3 transition-all duration-300 hover:rotate-0 hover:scale-105">
+              <StickerMock name="ARTHUR" stats="21-9-2012 | 1,52m | 43 kg" team="CORINTHIANS" accent="blue" />
+            </div>
           </div>
         </div>
       </section>
@@ -232,6 +255,10 @@ export default function Home() {
                   </div>
                   <h3 className="text-xl font-black text-brasil-blue">{step.title}</h3>
                   <p className="mt-2 leading-7 text-slate-600">{step.text}</p>
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-brasil-green/10 px-3 py-1 text-xs font-black text-brasil-green">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brasil-green" />
+                    {step.time}
+                  </p>
                 </article>
               );
             })}
