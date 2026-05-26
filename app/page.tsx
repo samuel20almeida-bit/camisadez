@@ -44,6 +44,9 @@ const proofItems = [
 export default function Home() {
   return (
     <main className="bg-[#f9f9f9]">
+      <div className="bg-brasil-green px-5 py-2 text-center text-sm font-black text-white">
+        ⚽ Copa 2026 começa em junho &mdash; garanta sua figurinha antes!
+      </div>
       <section className="hero-field relative isolate min-h-[78svh] overflow-hidden text-white">
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-[#f9f9f9]" />
         <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-4 sm:px-6">
@@ -160,6 +163,11 @@ export default function Home() {
                   <p className="mt-2 min-h-5 text-sm font-bold text-brasil-green">
                     {pack.savingsLabel ?? "ideal para começar"}
                   </p>
+                  {pack.count > 1 && (
+                    <p className="mt-1 text-xs font-semibold text-slate-400">
+                      R${((pack.priceCents / pack.count) / 100).toFixed(2).replace(".", ",")} por figurinha
+                    </p>
+                  )}
                 </div>
                 <Link
                   href={`/criar?pack=${pack.type}`}
@@ -188,7 +196,7 @@ export default function Home() {
               </h2>
             </div>
             <p className="text-sm leading-6 text-slate-600 md:text-right">
-              Mockups com nomes fictícios seguindo o layout da figurinha personalizada.
+              Exemplos do visual que você vai receber após o pagamento.
             </p>
           </div>
           <div className="grid justify-items-center gap-5 sm:grid-cols-3">
@@ -227,6 +235,58 @@ export default function Home() {
                 </article>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-14">
+        <div className="mx-auto w-full max-w-3xl px-5 sm:px-6">
+          <div className="mb-8 text-center">
+            <p className="text-sm font-black uppercase text-brasil-green">Dúvidas frequentes</p>
+            <h2 className="mt-2 text-3xl font-black text-brasil-blue sm:text-4xl">Perguntas e respostas</h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              {
+                q: "Quanto tempo leva para gerar a figurinha?",
+                a: "Entre 30 e 90 segundos via IA. Em momentos de alta demanda pode levar até 2 minutos. O preview é mostrado assim que a geração termina.",
+              },
+              {
+                q: "Vejo o resultado antes de pagar?",
+                a: "Sim! Você vê o preview com marca d'água de graça. Só paga se quiser o arquivo limpo em PNG.",
+              },
+              {
+                q: "Minha foto fica armazenada?",
+                a: "Sua foto é usada apenas para gerar a figurinha e fica armazenada de forma segura para permitir o download. Não compartilhamos sua imagem com terceiros. Consulte nossa Política de Privacidade para mais detalhes.",
+              },
+              {
+                q: "Posso imprimir a figurinha?",
+                a: "Sim! O arquivo PNG tem resolução mínima de 800×1120px, ideal para impressão em gráficas, revelação digital ou papel fotográfico. Sugerimos impressão no tamanho de figurinha real (aprox. 6×8 cm).",
+              },
+              {
+                q: "E se eu não gostar do resultado?",
+                a: "Você pode ver o preview antes de pagar e decidir se quer comprar. Se o resultado gerado pela IA não ficar bom, tente com uma foto diferente — rosto nítido, boa iluminação e fundo limpo dão os melhores resultados.",
+              },
+              {
+                q: "Quais formatos de foto são aceitos?",
+                a: "JPG, PNG ou WEBP, até 10MB. No celular você pode tirar uma selfie na hora ou escolher da galeria.",
+              },
+              {
+                q: "Posso criar figurinha de outra pessoa como presente?",
+                a: "Sim! Basta enviar a foto e preencher os dados da pessoa. É um presente personalizado e único.",
+              },
+            ].map(({ q, a }) => (
+              <details
+                key={q}
+                className="group rounded-lg bg-[#f9f9f9] ring-1 ring-slate-200 open:bg-white open:shadow-sm"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-black text-brasil-blue">
+                  {q}
+                  <span className="shrink-0 text-brasil-green transition-transform group-open:rotate-45">+</span>
+                </summary>
+                <p className="px-5 pb-5 text-sm leading-7 text-slate-600">{a}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
@@ -272,14 +332,14 @@ export default function Home() {
       </section>
 
       <footer className="bg-[#06132f] px-5 py-8 text-center text-sm text-white sm:px-6">
-        <p>© 2026 Minha Figurinha. Todos os direitos reservados.</p>
+        <p>© 2026 Camisa 10. Todos os direitos reservados.</p>
         <nav className="mt-3 flex justify-center gap-5 font-bold">
-          <a href="#" className="hover:text-brasil-yellow">
+          <Link href="/termos" className="hover:text-brasil-yellow">
             Termos de Uso
-          </a>
-          <a href="#" className="hover:text-brasil-yellow">
+          </Link>
+          <Link href="/privacidade" className="hover:text-brasil-yellow">
             Política de Privacidade
-          </a>
+          </Link>
         </nav>
       </footer>
     </main>
