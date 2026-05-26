@@ -7,3 +7,4 @@ coverage
 *.log
 screenshots
 tsconfig.tsbuildinfo
+test-card.png
