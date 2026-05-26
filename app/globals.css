@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -97,6 +97,11 @@ select {
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.font-display {
+  font-family: 'Bebas Neue', Impact, 'Arial Black', sans-serif;
+  letter-spacing: 0.02em;
 }
 
 @media (prefers-reduced-motion: reduce) {

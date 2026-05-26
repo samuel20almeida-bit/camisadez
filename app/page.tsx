@@ -12,7 +12,11 @@ import {
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { SocialProofStickers } from "@/components/SocialProofStickers";
 import { StickerMock } from "@/components/StickerMock";
+import { FadeUp, StaggerChildren, StaggerItem } from "@/components/FadeUp";
+import { TiltCard } from "@/components/TiltCard";
 import { PACK_LIST } from "@/lib/packs";
+import { CountdownTimer } from "@/components/CountdownTimer";
+import { Testimonials } from "@/components/Testimonials";
 
 const steps = [
   {
@@ -48,10 +52,12 @@ export default function Home() {
   return (
     <main className="bg-[#f9f9f9]">
       <div className="bg-gradient-to-r from-[#007a2e] via-brasil-green to-[#007a2e] px-5 py-2.5 text-center text-sm font-black text-white">
-        <span className="inline-flex items-center gap-2">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-brasil-yellow" />
-          Copa 2026 começa em junho &mdash; garanta sua figurinha antes!
-          <span className="h-2 w-2 animate-pulse rounded-full bg-brasil-yellow" />
+        <span className="inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-brasil-yellow" />
+            Copa 2026 começa em:
+          </span>
+          <CountdownTimer />
         </span>
       </div>
       <section className="hero-field relative isolate min-h-[78svh] overflow-hidden text-white">
@@ -82,7 +88,7 @@ export default function Home() {
               <BadgeCheck className="h-4 w-4 shrink-0 text-brasil-yellow" />
               <span className="truncate">Copa 2026 • preview antes de pagar</span>
             </div>
-            <h1 className="max-w-[18ch] text-4xl font-black leading-[1.06] sm:max-w-[17ch] sm:text-5xl lg:text-6xl">
+            <h1 className="max-w-[18ch] text-4xl font-black leading-[1.06] sm:max-w-[17ch] sm:text-5xl lg:text-[4.5rem]">
               Transforme você em figurinha da Copa 2026.
             </h1>
             <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-white/92 sm:text-lg">
@@ -112,30 +118,32 @@ export default function Home() {
 
       <section className="relative -mt-10 px-5 pb-14 sm:px-6">
         <div className="brand-rule mx-auto h-2 w-full max-w-6xl rounded-full" />
-        <div className="mx-auto mt-8 grid w-full max-w-6xl gap-4 md:grid-cols-3">
+        <StaggerChildren className="mx-auto mt-8 grid w-full max-w-6xl gap-4 md:grid-cols-3">
           {proofItems.map((item) => {
             const Icon = item.icon;
 
             return (
-              <div key={item.label} className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-lg bg-brasil-yellow text-brasil-blue">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-black leading-none text-brasil-blue">{item.label}</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-600">{item.text}</p>
+              <StaggerItem key={item.label}>
+                <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-10 w-10 place-items-center rounded-lg bg-brasil-yellow text-brasil-blue">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-black leading-none text-brasil-blue">{item.label}</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-600">{item.text}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </StaggerItem>
             );
           })}
-        </div>
+        </StaggerChildren>
       </section>
 
       <section id="packs" className="bg-white py-14">
         <div className="mx-auto w-full max-w-6xl px-5 sm:px-6">
-          <div className="mx-auto mb-8 max-w-2xl text-center">
+          <FadeUp className="mx-auto mb-8 max-w-2xl text-center">
             <p className="text-sm font-black uppercase text-brasil-green">Escolha seu pack</p>
             <h2 className="mt-2 text-3xl font-black leading-tight text-brasil-blue sm:text-4xl">
               Uma figurinha para você ou um álbum para a família.
@@ -143,12 +151,12 @@ export default function Home() {
             <p className="mt-3 text-sm leading-6 text-slate-600">
               A quantidade fica travada depois da escolha para deixar o fluxo simples e rápido.
             </p>
-          </div>
+          </FadeUp>
 
-          <div className="grid gap-4 lg:grid-cols-3">
+          <StaggerChildren className="grid gap-4 lg:grid-cols-3">
             {PACK_LIST.map((pack) => (
+              <StaggerItem key={pack.type}>
               <article
-                key={pack.type}
                 className={
                   pack.popular
                     ? "relative overflow-hidden rounded-xl border-2 border-brasil-green bg-gradient-to-br from-[#f0fff6] to-[#e4f9ed] p-5 shadow-2xl shadow-brasil-green/20 ring-1 ring-brasil-green/30"
@@ -198,14 +206,30 @@ export default function Home() {
                   <ArrowRight className="h-5 w-5" />
                 </Link>
               </article>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerChildren>
         </div>
       </section>
 
+      <div className="border-y border-slate-100 bg-white py-5">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-center gap-6 px-5 sm:px-6">
+          {[
+            "🔒 Pagamento 100% seguro via Stripe",
+            "👁️ Veja o resultado antes de pagar",
+            "⚡ Entrega instantânea por download",
+            "🖨️ PNG pronto para impressão",
+          ].map((item) => (
+            <span key={item} className="text-sm font-bold text-slate-500">
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
       <section className="bg-white py-14">
         <div className="mx-auto w-full max-w-6xl px-5 sm:px-6">
-          <div className="mb-8 grid gap-3 md:grid-cols-[1fr_0.7fr] md:items-end">
+          <FadeUp className="mb-8 grid gap-3 md:grid-cols-[1fr_0.7fr] md:items-end">
             <div>
               <p className="text-sm font-black uppercase text-brasil-green">Galeria de exemplos</p>
               <h2 className="mt-2 text-3xl font-black leading-tight text-brasil-blue sm:text-4xl">
@@ -215,63 +239,70 @@ export default function Home() {
             <p className="text-sm leading-6 text-slate-600 md:text-right">
               Exemplos do visual que você vai receber após o pagamento.
             </p>
-          </div>
-          <div className="grid justify-items-center gap-6 sm:grid-cols-3">
-            <div className="-rotate-3 transition-all duration-300 hover:rotate-0 hover:scale-105">
-              <StickerMock name="HELENA" stats="12-7-2016 | 1,32m | 28 kg" team="PALMEIRAS" accent="yellow" />
-            </div>
-            <div className="transition-all duration-300 hover:scale-105 sm:translate-y-6">
-              <StickerMock name="MIGUEL" stats="4-3-2014 | 1,44m | 36 kg" team="FLAMENGO" accent="green" />
-            </div>
-            <div className="rotate-3 transition-all duration-300 hover:rotate-0 hover:scale-105">
-              <StickerMock name="ARTHUR" stats="21-9-2012 | 1,52m | 43 kg" team="CORINTHIANS" accent="blue" />
-            </div>
-          </div>
+          </FadeUp>
+          <StaggerChildren className="grid justify-items-center gap-6 sm:grid-cols-3" staggerDelay={0.15}>
+            <StaggerItem>
+              <TiltCard className="-rotate-3">
+                <StickerMock name="HELENA" stats="12-7-2016 | 1,32m | 28 kg" team="PALMEIRAS" accent="yellow" />
+              </TiltCard>
+            </StaggerItem>
+            <StaggerItem>
+              <TiltCard className="sm:translate-y-6">
+                <StickerMock name="MIGUEL" stats="4-3-2014 | 1,44m | 36 kg" team="FLAMENGO" accent="green" />
+              </TiltCard>
+            </StaggerItem>
+            <StaggerItem>
+              <TiltCard className="rotate-3">
+                <StickerMock name="ARTHUR" stats="21-9-2012 | 1,52m | 43 kg" team="CORINTHIANS" accent="blue" />
+              </TiltCard>
+            </StaggerItem>
+          </StaggerChildren>
         </div>
       </section>
 
       <section className="subtle-field py-14">
         <div className="mx-auto w-full max-w-6xl px-5 sm:px-6">
-          <div className="mb-8 text-center">
+          <FadeUp className="mb-8 text-center">
             <p className="text-sm font-black uppercase text-brasil-green">Como funciona</p>
             <h2 className="mt-2 text-3xl font-black text-brasil-blue sm:text-4xl">
               Sua figurinha em três passos
             </h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          </FadeUp>
+          <StaggerChildren className="grid gap-4 md:grid-cols-3">
             {steps.map((step) => {
               const Icon = step.icon;
 
               return (
-                <article
-                  key={step.title}
-                  className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200"
-                >
-                  <div className="mb-5 flex items-center justify-between gap-3">
-                    <div className="grid h-12 w-12 place-items-center rounded-lg bg-brasil-green text-white">
-                      <Icon className="h-6 w-6" />
+                <StaggerItem key={step.title}>
+                  <article className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                    <div className="mb-5 flex items-center justify-between gap-3">
+                      <div className="grid h-12 w-12 place-items-center rounded-lg bg-brasil-green text-white">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <span className="text-3xl font-black text-brasil-yellow">{step.kicker}</span>
                     </div>
-                    <span className="text-3xl font-black text-brasil-yellow">{step.kicker}</span>
-                  </div>
-                  <h3 className="text-xl font-black text-brasil-blue">{step.title}</h3>
-                  <p className="mt-2 leading-7 text-slate-600">{step.text}</p>
-                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-brasil-green/10 px-3 py-1 text-xs font-black text-brasil-green">
-                    <span className="h-1.5 w-1.5 rounded-full bg-brasil-green" />
-                    {step.time}
-                  </p>
-                </article>
+                    <h3 className="text-xl font-black text-brasil-blue">{step.title}</h3>
+                    <p className="mt-2 leading-7 text-slate-600">{step.text}</p>
+                    <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-brasil-green/10 px-3 py-1 text-xs font-black text-brasil-green">
+                      <span className="h-1.5 w-1.5 rounded-full bg-brasil-green" />
+                      {step.time}
+                    </p>
+                  </article>
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerChildren>
         </div>
       </section>
 
+      <Testimonials />
+
       <section className="bg-white py-14">
         <div className="mx-auto w-full max-w-3xl px-5 sm:px-6">
-          <div className="mb-8 text-center">
+          <FadeUp className="mb-8 text-center">
             <p className="text-sm font-black uppercase text-brasil-green">Dúvidas frequentes</p>
             <h2 className="mt-2 text-3xl font-black text-brasil-blue sm:text-4xl">Perguntas e respostas</h2>
-          </div>
+          </FadeUp>
           <div className="space-y-3">
             {[
               {
@@ -320,7 +351,7 @@ export default function Home() {
 
       <section className="bg-brasil-blue py-14 text-white">
         <div className="mx-auto w-full max-w-6xl px-5 sm:px-6">
-          <div className="grid gap-8 text-center md:grid-cols-[1fr_auto] md:items-center md:text-left">
+          <FadeUp className="grid gap-8 text-center md:grid-cols-[1fr_auto] md:items-center md:text-left">
             <div>
               <p className="text-sm font-black uppercase text-brasil-yellow">Prova social</p>
               <h2 className="mt-2 text-4xl font-black">
@@ -333,7 +364,7 @@ export default function Home() {
             <div className="rounded-lg bg-white/10 px-5 py-4 text-4xl leading-relaxed ring-1 ring-white/15 sm:text-5xl" aria-label="Bandeiras de países">
               🇧🇷 🇦🇷 🇫🇷 🇩🇪 🇪🇸
             </div>
-          </div>
+          </FadeUp>
 
           <div className="mt-9">
             <SocialProofStickers />

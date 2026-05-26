@@ -1,0 +1,17 @@
+{
+  "enabledPlugins": {
+    "example-skills@anthropic-agent-skills": true,
+    "document-skills@anthropic-agent-skills": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true
+  },
+  "extraKnownMarketplaces": [
+    {
+      "name": "anthropic-agent-skills",
+      "source": ".claude/plugins/anthropics-skills/.claude-plugin/marketplace.json"
+    },
+    {
+      "name": "ui-ux-pro-max-skill",
+      "source": ".claude/plugins/ui-ux-pro-max-skill/.claude-plugin/marketplace.json"
+    }
+  ]
+}
