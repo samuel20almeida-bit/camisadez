@@ -1,6 +1,7 @@
 import sharp from "sharp";
 import { formatHeight, toCardName, toTeamName } from "@/lib/format";
 import { tryGenerateAiSticker } from "@/lib/openai-sticker";
+import { tryGenerateReplicateSticker } from "@/lib/replicate-sticker";
 import { renderText } from "@/lib/sticker-font";
 import { downloadStickerImage, uploadStickerImage } from "@/lib/sticker-store";
 
@@ -186,7 +187,8 @@ async function preparePhoto(photoBuffer: Buffer) {
 
 export async function generateSticker(input: GenerateStickerInput) {
   const photo = await preparePhoto(input.photoBuffer);
-  const aiClean = await tryGenerateAiSticker(input);
+  const aiClean =
+    (await tryGenerateReplicateSticker(input)) ?? (await tryGenerateAiSticker(input));
 
   const clean =
     aiClean ??
