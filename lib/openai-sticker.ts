@@ -71,16 +71,38 @@ function buildPrompt(input: AiStickerInput) {
   const stats = `${input.birthDate} | ${formatHeight(input.heightCm)} | ${input.weightKg} kg`;
   const team = toTeamName(input.team);
 
-  return [
-    "Use as imagens de referência fornecidas como base visual principal do layout da figurinha.",
-    "Quero que você substitua a pessoa das referências pela pessoa enviada na foto do usuário, mantendo o estilo visual, composição, cores, recorte, fundo, número 26, FIFA 26, bandeira do Brasil, BRA vertical e rodapé das referências.",
-    "Garanta que as informações da imagem mudem para os dados abaixo, como nome, sobrenome, peso, altura e time.",
-    "É imprescindível que todos os textos estejam legíveis e que apenas a pessoa e os dados mudem; todo o restante deve permanecer no mesmo padrão das referências.",
-    `Nome principal: ${name}.`,
-    `Linha de stats: ${stats}.`,
-    `Time/clube: ${team}.`,
-    "Mantenha o estilo de figurinha Copa 2026, fundo ciano, número 26 verde, bandeira do Brasil, BRA vertical e rodapé escuro.",
-  ].join(" ");
+  return `
+OBJETIVO: Gere uma figurinha de jogador de futebol no estilo Panini Copa do Mundo 2026, seguindo EXATAMENTE o layout das imagens de referência fornecidas.
+
+JOGADOR (prioridade máxima):
+- O rosto deve ser IDÊNTICO ao da última foto fornecida (foto do usuário). Preserve todos os traços faciais: formato do rosto, cor de pele, olhos, nariz, boca, cabelo (cor e estilo).
+- Vista o jogador com a camisa oficial amarela da Seleção Brasileira (número 10, detalhes verdes e azuis, escudo da CBF).
+- Posicione o jogador da cintura para cima, levemente de frente, em pose de jogador profissional de futebol.
+- Aplique recorte limpo do jogador sobre o fundo da carta, sem bordas ou halo artificiais.
+
+LAYOUT (copie das referências sem alteração):
+- Fundo: ciano brilhante (#00C4C8).
+- Números decorativos "2" e "6" grandes em verde escuro sobrepostos ao fundo.
+- Canto superior direito: ícone de troféu branco com "26" e "FIFA" em branco abaixo.
+- Lateral direita: círculo com a bandeira do Brasil + texto "BRA" rotacionado 90° verticalmente.
+- Área da foto: retângulo com cantos arredondados ocupando a parte central-superior da carta.
+- Rodapé: retângulo arredondado azul-escuro (#002050) com as informações do jogador.
+- Canto inferior direito: selo "PANINI" em vermelho sobre fundo amarelo.
+
+TEXTOS (obrigatório — todos devem aparecer nítidos, legíveis e sem distorção):
+- Nome do jogador em letras maiúsculas, grandes e em negrito no centro do rodapé: "${name}"
+- Linha de estatísticas abaixo do nome, fonte menor: "${stats}"
+- Nome do time/clube centralizado na segunda barra do rodapé: "${team}"
+- Manter exatamente: "26", "FIFA", "BRA" e "PANINI" nas posições das referências.
+
+RESTRIÇÕES — NÃO faça:
+- NÃO use um rosto genérico ou inventado; o rosto vem obrigatoriamente da foto do usuário.
+- NÃO altere o layout, cores de fundo, posição dos elementos decorativos ou estrutura da carta.
+- NÃO omita, distorça ou altere nenhum dos textos acima.
+- NÃO coloque o jogador com outra camisa ou roupa que não seja a da Seleção Brasileira.
+
+QUALIDADE: Alta resolução fotorrealista, iluminação consistente com o fundo da carta, textos nítidos.
+`.trim();
 }
 
 export async function tryGenerateAiSticker(input: AiStickerInput) {
