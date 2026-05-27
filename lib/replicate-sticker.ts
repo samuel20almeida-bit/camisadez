@@ -12,6 +12,52 @@ type AiStickerInput = {
   photoBuffer: Buffer;
 };
 
+// Per-model input parameter shapes
+type ModelParams = {
+  imageKey: string;
+  aspectRatioKey?: string;
+  aspectRatioValue?: string;
+  extra?: Record<string, unknown>;
+};
+
+function modelParams(model: string): ModelParams {
+  if (model.startsWith("google/nano-banana")) {
+    // Google Imagen-based model: uses "image", "aspect_ratio" "3:4" (portrait)
+    // "multi-image fusion" and "character consistency" features
+    return {
+      imageKey: "image",
+      aspectRatioKey: "aspect_ratio",
+      aspectRatioValue: "3:4",
+      extra: {
+        output_format: "png",
+        safety_filter_level: "block_few",
+        person_generation: "allow_adult",
+      },
+    };
+  }
+
+  if (model.startsWith("black-forest-labs/flux-kontext")) {
+    return {
+      imageKey: "input_image",
+      aspectRatioKey: "aspect_ratio",
+      aspectRatioValue: "2:3",
+      extra: {
+        output_format: "png",
+        safety_tolerance: 2,
+        prompt_upsampling: false,
+      },
+    };
+  }
+
+  // Generic fallback
+  return {
+    imageKey: "image",
+    aspectRatioKey: "aspect_ratio",
+    aspectRatioValue: "2:3",
+    extra: { output_format: "png" },
+  };
+}
+
 async function prepareImage(buffer: Buffer): Promise<string> {
   const processed = await sharp(buffer)
     .rotate()
@@ -56,6 +102,15 @@ STRICT RULES:
 OUTPUT: photorealistic, high-resolution, sharp crisp text, consistent lighting, professional quality.`.trim();
 }
 
+function extractUrl(output: unknown): string | null {
+  if (typeof output === "string") return output;
+  if (Array.isArray(output) && typeof output[0] === "string") return output[0] as string;
+  if (output && typeof (output as { url?: () => string }).url === "function") {
+    return (output as { url: () => string }).url();
+  }
+  return null;
+}
+
 export async function tryGenerateReplicateSticker(input: AiStickerInput): Promise<Buffer | null> {
   if (!process.env.REPLICATE_API_TOKEN) {
     console.info("[replicate-sticker] REPLICATE_API_TOKEN ausente; pulando.");
@@ -69,41 +124,28 @@ export async function tryGenerateReplicateSticker(input: AiStickerInput): Promis
 
   const model =
     (process.env.REPLICATE_MODEL as `${string}/${string}` | undefined) ??
-    "black-forest-labs/flux-kontext-pro";
+    "google/nano-banana-2";
 
   const startedAt = Date.now();
 
   try {
     const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
     const inputImage = await prepareImage(input.photoBuffer);
+    const params = modelParams(model);
 
     console.info(`[replicate-sticker] chamando ${model}`);
 
-    const output = await replicate.run(model, {
-      input: {
-        prompt: buildPrompt(input),
-        input_image: inputImage,
-        aspect_ratio: "2:3",
-        output_format: "png",
-        safety_tolerance: 2,
-        prompt_upsampling: false,
-      },
-    });
+    const replicateInput: Record<string, unknown> = {
+      prompt: buildPrompt(input),
+      [params.imageKey]: inputImage,
+      ...(params.aspectRatioKey ? { [params.aspectRatioKey]: params.aspectRatioValue } : {}),
+      ...params.extra,
+    };
 
+    const output = await replicate.run(model, { input: replicateInput });
     const elapsed = Date.now() - startedAt;
 
-    let imageUrl: string | null = null;
-    if (typeof output === "string") {
-      imageUrl = output;
-    } else if (Array.isArray(output) && typeof output[0] === "string") {
-      imageUrl = output[0] as string;
-    } else if (
-      output &&
-      typeof (output as { url?: () => string }).url === "function"
-    ) {
-      imageUrl = (output as { url: () => string }).url();
-    }
-
+    const imageUrl = extractUrl(output);
     if (!imageUrl) {
       console.warn(`[replicate-sticker] resposta sem URL após ${elapsed}ms; usando fallback.`);
       return null;
